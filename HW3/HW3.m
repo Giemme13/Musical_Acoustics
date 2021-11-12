@@ -11,7 +11,7 @@ Zair = 0;        %air impedance %per ora 0
 a0 = 0.01;       %radius of exponential horn's section: a = a0*exp(m*x) [m]
 m = 4;
 L = 0.4;         %total length of the horn [m]
-fmin = 0;        %frequency study range [fmin, fmax] [Hz]
+fmin = 1;        %frequency study range [fmin, fmax] [Hz]
 fmax = 2000;
 freq_res = 10000;  %resolution of the frequency interval
 
@@ -29,17 +29,20 @@ res = 1000;       %number of points used in the plots
 
 
 %% EXPONENTIAL HORN
+
 x = linspace(0,L,res);
 a = a0*exp(m*x);
 numEXP = Zair*cos(b*L+theta)+1i*(rho*c/S2)*sin(b*L);
 denEXP = 1i*Zair*sin(b*L)+(rho*c/S2)*cos(b*L-theta);
 ZinEXP = (rho*c/S1)*numEXP./denEXP;
+
 figure(1)
 plot(x, a, 'k', 'linewidth', 2)
 hold on
 plot(x, -a, 'k', 'linewidth', 2)
 hold off
 yline(0, '-.')
+
 figure(2)
 subplot(2,1,1)
 plot(f, db(abs(ZinEXP)))
@@ -71,6 +74,7 @@ hold on
 plot(x, -a, 'k', 'linewidth', 2)
 hold off
 yline(0, '-.')
+
 figure(4)
 subplot(2,1,1)
 plot(f, db(abs(ZinCON_1)))
@@ -107,42 +111,34 @@ for i = 1:n
     
     Zload = ZinCON_n;
     
-    figure(5)
-    plot((n-i)*delta+x, a, 'k', 'linewidth', 2)
-    hold on
-    plot((n-i)*delta+x, -a, 'k', 'linewidth', 2)
-    yline(0, '-.')
+    %figure(5)
+    %plot((n-i)*delta+x, a, 'k', 'linewidth', 2)
+    %hold on
+    %plot((n-i)*delta+x, -a, 'k', 'linewidth', 2)
+    %yline(0, '-.')
 end
 
-hold off
+%hold off
 
-figure(6)
-subplot(2,1,1)
-plot(f,db(abs(ZinCON_n)))
-subplot(2,1,2)
-plot(f, angle(ZinCON_n))
-
-
-%%
-
-figure(10)
-plot(f,db(abs(ZinEXP)), 'linewidth', 2)
-hold on
-plot(f,db(abs(ZinCON_1)))
-plot(f,db(abs(ZinCON_n)), '-.')
-legend()
-hold off
+%figure(6)
+%subplot(2,1,1)
+%plot(f,db(abs(ZinCON_n)))
+%subplot(2,1,2)
+%plot(f, angle(ZinCON_n))
 
 
 %% FROM 1 TO n CONICAL HORNS
-clc
-n = 3;
+
+n = 10;
+
+deltas = zeros(1,n);
 
 e1 = zeros(1, n);
 e2 = zeros(1, n);
 
 for j = 1:n
     delta = L/j;
+    deltas(j) = delta;
     points = round(res/j);
     
     Zload = Zair;
@@ -155,7 +151,6 @@ for j = 1:n
         theta2 = atan(k*x2);
         S1 = pi*(a1^2);
         S2 = pi*(a2^2);
-        disp([a1,a2])
         x = linspace(0, delta, points);
         slope = (a2-a1)/delta;
         a = slope*x + a1;
@@ -166,71 +161,45 @@ for j = 1:n
 
         Zload = ZinCON_n;
 
-        %figure(j)
-        %plot((j-i)*delta+x, a, 'k', 'linewidth', 2)
-        %hold on
-        %plot((j-i)*delta+x, -a, 'k', 'linewidth', 2)
-        %yline(0, '-.')
+        figure(4+j)
+        plot((j-i)*delta+x, a, 'k', 'linewidth', 2)
+        hold on
+        plot((j-i)*delta+x, -a, 'k', 'linewidth', 2)
+        yline(0, '-.')
     end
-    %hold off
+    hold off
     
-    %figure(n+j)
-    %subplot(2,1,1)
-    %plot(f,db(abs(ZinCON_n)))
-    %subplot(2,1,2)
-    %plot(f, angle(ZinCON_n))
+    figure(4+n+j)
+    subplot(2,1,1)
+    plot(f,db(abs(ZinCON_n)))
+    subplot(2,1,2)
+    plot(f, angle(ZinCON_n))
     
-    %for k = 1:length(f)
-        %e1(1,j) = e1(1,j) + (abs(ZinCON_n(k) - ZinEXP(k)))^2;
-    %end
-    %e1(1,j) = e1(1,j)/(2*pi*(fmax-fmin));
+    for i = 1:length(f)
+        e1(j) = e1(j) + (abs(ZinCON_n(i) - ZinEXP(i)))^2;
+    end
+    e1(j) = e1(j)/(2*pi*(fmax-fmin));
+    
+    
+    [pks_CON, locs_CON] = findpeaks(abs(ZinCON_n));
+    [pks_EXP, locs_EXP] = findpeaks(abs(ZinEXP));
+    for i = 1:5
+        e2(j) = e2(j) + abs(locs_CON(i)-locs_EXP(i));
+    end
 end
 
-
-%% n CONICAL HORNS
-
-%recursive attempt
-n = 1:10;
-delta = L./n;
-ZL = 0;
-Zin = 0;
-
-%empty arrays for errors
-e1=zeros(1,length(n));
-e2=zeros(1,length(n));
-
-for i=1:length(n)
-    for j=1:i
-        %parameters
-        %index=i+1-j;
-        if j==1
-            ZL=Zair;
-            x2=(exp(m*L))*L/(exp(m*L)-1);
-            x1=x2-delta(i);
-        else
-            %x2=(exp(m*(L-(j-1)*delta(i))))*(L-(j-1)*delta(i))/(exp(m*(L-(j-1)*delta(i)))-1);
-            x2=x1;
-            x1=x2-(j-1)*delta(i);
-        end
-        S1=pi*(max([a0, a0*exp(x1*m)]))^2;
-        S2=pi*(max([a0, a0*exp(x2*m)]))^2;
-        theta1=atan(k*x1);
-        theta2=atan(k*x2);
-        %impedance
-        Zin=(rho*c./S1).*(1i*ZL.*(sin(k.*delta(i)-theta2)./sin(theta2))+(rho*c/S2)*sin(k.*delta(i)))./(ZL.*(sin(k*delta(i)+theta1-theta2)./(sin(theta1).*sin(theta2)))-(1i*rho*c/S2).*(sin(k*delta(i)+theta1)./sin(theta1)));
-        ZL=Zin;
-        %fprintf('%f \n', S2,S1)
-    end
-    e1Temp=0;
-    e2Temp=0;
-    for h=1:(length(f)-1)
-       e1Temp=e1Temp+(abs(Zin(h)-ZinEXP(h)))^2;
-    end    
-    %calculate errors e1 and e2 for given number of subdivisions
-    e1(i)=e1Temp/(fmax-1);
-    %e2=...;
-end
-
-%plot(n, e1)
+figure(n+j+4+1)
+stem(deltas,e1)
+figure(n+j+4+2)
+stem(deltas,e2)
 
 
+%%
+
+figure(50)
+plot(f,db(abs(ZinEXP)), 'linewidth', 2)
+hold on
+plot(f,db(abs(ZinCON_1)))
+plot(f,db(abs(ZinCON_n)), '-.')
+legend()
+hold off
