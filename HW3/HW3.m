@@ -209,3 +209,27 @@ subplot(2,1,1)
 plot(f, db(abs(ZinCON_10)))
 subplot(2,1,2)
 plot(f, angle(ZinCON_10))
+
+%% COMPOUND HORN
+
+%Data
+L_cyl=0.6;
+a_cyl=a0;
+S_cyl=pi*(a_cyl^2);
+Z0=rho*c/S_cyl;
+
+ZinCYL=Z0.*(ZinCON_10.*cos(k.*L_cyl)+1i*Z0.*sin(k.*L_cyl))./(1i.*ZinCON_10.*sin(k.*L_cyl)+Z0.*cos(k.*L_cyl));
+
+[pks_COMP, locs_COMP] = findpeaks(real(ZinCYL));
+argmax_omega_COMP = f(locs_COMP);
+tenMax=zeros(1,10);
+
+for i=1:10
+    tenMax(i)=argmax_omega_COMP(i);
+end
+
+figure(13)
+subplot(2,1,1)
+plot(f, db(abs(ZinCYL)))
+subplot(2,1,2)
+plot(f, angle(ZinCYL))
