@@ -23,7 +23,7 @@ theta = atan(m./b);     %geometrical quantity [/]
 
 %cross sections
 S1 = pi*a0^2;               %throat section [m^2]
-S2 = pi*(a0*exp(L*m))^2;    %mouse section [m^2]
+S2 = pi*(a0*exp(L*m))^2;    %mouth section [m^2]
 
 res = 1000;       %number of points used in the axial sections' plots
 
@@ -84,7 +84,7 @@ plot(f, angle(ZinCON_1))
 
 %% FROM 1 TO n CONICAL HORNS
 
-n = 30;
+n = 20;
 
 deltas = zeros(1,n);
 
@@ -122,6 +122,7 @@ for j = 1:n
             hold on
             plot((j-i)*delta+x, -a, 'k', 'linewidth', 2)
             yline(0, '-.')
+            xline((j-i)*delta, '--', 'color', [0.8500, 0.3250, 0.0980], 'linewidth', 0.2)
         end
     end
     hold off
@@ -157,13 +158,105 @@ figure(10)
 stem(deltas,e2)
 
 
-%%
 
-figure(11)
+%% DIFFERENT SAMPLING STRATEGY
+
+%uniform sampling on y-axis
+n = n;
+
+%geometry
+a1 = a0*exp(m*0);
+a2 = a0*exp(m*L);
+H = a2-a1;
+
+e1_ysamp = zeros(1, n);
+e2_ysamp = zeros(1, n);
+
+for j = 1:n
+    
+    height = H/j;
+    
+    Zload = Zair;
+    
+    len = L;
+    
+    for i = 1:j
+        a1 = (j-i)*height + a0;             %y_value of the throat of the (j-i+1)-th cone
+        a2 = (j-i+1)*height + a0;           %y_value of the mouth of the (j-i+1)-th cone
+        d1 = (1/m)*log(a1/a0);              %x_value of the throat of the (j-i+1)-th cone
+        d2 = (1/m)*log(a2/a0);              %x_value of the mouth of the (j-i+1)-th cone
+        delta = d2-d1;                      %distance between throat and mouth
+        x1 = (a1*delta)/(a2-a1);
+        x2 = x1+delta;
+        theta1 = atan(k*x1);
+        theta2 = atan(k*x2);
+        S1 = pi*(a1^2);
+        S2 = pi*(a2^2);
+        
+        ratio = L/delta;                    %number of points on x_axis for the plot of the axial section
+        points = round(res/ratio);
+        x = linspace(0, delta, points);
+        slope = (a2-a1)/delta;
+        a = slope*x + a1;
+
+        numCON = 1i*Zload.*(sin(k*delta-theta2)./sin(theta2))+(rho*c/S2)*sin(k*delta);
+        denCON = Zload.*(sin(k*delta+theta1-theta2)./(sin(theta1).*sin(theta2)))-(1i*rho*c/S2).*(sin(k*delta+theta1)./sin(theta1));
+        ZinCON_ysamp = (rho*c/S1)*numCON./denCON;
+        
+        Zload = ZinCON_ysamp;
+        
+        if j == n
+            figure(11)
+            plot((len-delta)+x, a, 'k', 'linewidth', 2)
+            hold on
+            plot((len-delta)+x, -a, 'k', 'linewidth', 2)
+            yline(0, '-.')
+            xline(len-delta, '--', 'color', [0.8500, 0.3250, 0.0980], 'linewidth', 0.2)
+        end
+        len = len-delta;        
+    end
+    hold off
+    
+    if j == n
+        figure(12)
+        subplot(2,1,1)
+        plot(f, db(abs(ZinCON_ysamp)))
+        subplot(2,1,2)
+        plot(f, angle(ZinCON_ysamp))
+    end
+
+    
+    for i = 1:length(f)
+        e1_ysamp(j) = e1_ysamp(j) + (abs(ZinCON_ysamp(i) - ZinEXP(i)))^2;
+    end
+    e1_ysamp(j) = e1_ysamp(j)/(2*pi*(fmax-fmin));
+    
+    
+    [pks_CON, locs_CON] = findpeaks(real(ZinCON_ysamp));
+    [pks_EXP, locs_EXP] = findpeaks(real(ZinEXP));
+    
+    argmax_omega_CON = f(locs_CON);
+    argmax_omega_EXP = f(locs_EXP);
+    
+    for i = 1:5
+        e2_ysamp(j) = e2_ysamp(j) + abs(argmax_omega_CON(i)-argmax_omega_EXP(i));
+    end
+end
+
+figure(13)
+stem(linspace(1,n,n),e1_ysamp)
+figure(14)
+stem(linspace(1,n,n),e2_ysamp)
+
+
+%% COMPARISON
+
+figure(15)
 plot(f,db(abs(ZinEXP)), 'linewidth', 2)
 hold on
 plot(f,db(abs(ZinCON_1)))
 plot(f,db(abs(ZinCON_n)), '-.')
+plot(f,db(abs(ZinCON_ysamp)), '-.')
 legend()
 hold off
 
@@ -204,7 +297,7 @@ for i = 1:n
 end
 
 
-figure(12)
+figure(16)
 subplot(2,1,1)
 plot(f, db(abs(ZinCON_10)))
 subplot(2,1,2)
@@ -213,22 +306,24 @@ plot(f, angle(ZinCON_10))
 %% COMPOUND HORN
 
 %Data
-L_cyl=0.6;
-a_cyl=a0;
-S_cyl=pi*(a_cyl^2);
-Z0=rho*c/S_cyl;
+L_cyl = 0.6;
+a_cyl = a0;
+S_cyl = pi*(a_cyl^2);
+Z0 = rho*c/S_cyl;
 
-ZinCYL=Z0.*(ZinCON_10.*cos(k.*L_cyl)+1i*Z0.*sin(k.*L_cyl))./(1i.*ZinCON_10.*sin(k.*L_cyl)+Z0.*cos(k.*L_cyl));
+numCYL = ZinCON_10.*cos(k*L_cyl)+1i*Z0*sin(k*L_cyl);
+denCYL = 1i*ZinCON_10.*sin(k*L_cyl)+Z0*cos(k*L_cyl);
+ZinCYL = Z0*(numCYL./denCYL);
 
-[pks_COMP, locs_COMP] = findpeaks(real(ZinCYL));
+[pks_COMP, locs_COMP] = findpeaks(abs(ZinCYL));
 argmax_omega_COMP = f(locs_COMP);
-tenMax=zeros(1,10);
+tenMax = zeros(1,10);
 
 for i=1:10
-    tenMax(i)=argmax_omega_COMP(i);
+    tenMax(i) = argmax_omega_COMP(i);
 end
 
-figure(13)
+figure(17)
 subplot(2,1,1)
 plot(f, db(abs(ZinCYL)))
 subplot(2,1,2)
