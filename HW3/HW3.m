@@ -36,18 +36,18 @@ numEXP = Zair*cos(b*L+theta)+1i*(rho*c/S2)*sin(b*L);
 denEXP = 1i*Zair*sin(b*L)+(rho*c/S2)*cos(b*L-theta);
 ZinEXP = (rho*c/S1)*numEXP./denEXP;
 
-figure(1)
-plot(x, a, 'k', 'linewidth', 2)
-hold on
-plot(x, -a, 'k', 'linewidth', 2)
-hold off
-yline(0, '-.')
+%figure(1)
+%plot(x, a, 'k', 'linewidth', 2)
+%hold on
+%plot(x, -a, 'k', 'linewidth', 2)
+%hold off
+%yline(0, '-.')
 
-figure(2)
-subplot(2,1,1)
-plot(f, db(abs(ZinEXP)))
-subplot(2,1,2)
-plot(f, angle(ZinEXP))
+%figure(2)
+%subplot(2,1,1)
+%plot(f, db(abs(ZinEXP)))
+%subplot(2,1,2)
+%plot(f, angle(ZinEXP))
 
 
 %% 1 CONICAL HORN
@@ -68,18 +68,18 @@ denCON = Zload*(sin(k*L+theta1-theta2)./(sin(theta1).*sin(theta2)))-(1i*rho*c/S2
 ZinCON_1 = (rho*c/S1)*numCON./denCON;
 
 
-figure(3)
-plot(x, a, 'k', 'linewidth', 2)
-hold on
-plot(x, -a, 'k', 'linewidth', 2)
-hold off
-yline(0, '-.')
+%figure(3)
+%plot(x, a, 'k', 'linewidth', 2)
+%hold on
+%plot(x, -a, 'k', 'linewidth', 2)
+%hold off
+%yline(0, '-.')
 
-figure(4)
-subplot(2,1,1)
-plot(f, db(abs(ZinCON_1)))
-subplot(2,1,2)
-plot(f, angle(ZinCON_1))
+%figure(4)
+%subplot(2,1,1)
+%plot(f, db(abs(ZinCON_1)))
+%subplot(2,1,2)
+%plot(f, angle(ZinCON_1))
 
 
 %% n CONICAL HORNS
@@ -161,19 +161,19 @@ for j = 1:n
 
         Zload = ZinCON_n;
 
-        figure(4+j)
-        plot((j-i)*delta+x, a, 'k', 'linewidth', 2)
-        hold on
-        plot((j-i)*delta+x, -a, 'k', 'linewidth', 2)
-        yline(0, '-.')
+        %figure(4+j)
+        %plot((j-i)*delta+x, a, 'k', 'linewidth', 2)
+        %hold on
+        %plot((j-i)*delta+x, -a, 'k', 'linewidth', 2)
+        %yline(0, '-.')
     end
-    hold off
+    %hold off
     
-    figure(4+n+j)
-    subplot(2,1,1)
-    plot(f,db(abs(ZinCON_n)))
-    subplot(2,1,2)
-    plot(f, angle(ZinCON_n))
+    %figure(4+n+j)
+    %subplot(2,1,1)
+    %plot(f,db(abs(ZinCON_n)))
+    %subplot(2,1,2)
+    %plot(f, angle(ZinCON_n))
     
     for i = 1:length(f)
         e1(j) = e1(j) + (abs(ZinCON_n(i) - ZinEXP(i)))^2;
@@ -188,18 +188,43 @@ for j = 1:n
     end
 end
 
-figure(n+j+4+1)
-stem(deltas,e1)
-figure(n+j+4+2)
-stem(deltas,e2)
+%figure(n+j+4+1)
+%stem(deltas,e1)
+%figure(n+j+4+2)
+%stem(deltas,e2)
 
 
 %%
 
-figure(50)
-plot(f,db(abs(ZinEXP)), 'linewidth', 2)
-hold on
-plot(f,db(abs(ZinCON_1)))
-plot(f,db(abs(ZinCON_n)), '-.')
-legend()
-hold off
+%figure(50)
+%plot(f,db(abs(ZinEXP)), 'linewidth', 2)
+%hold on
+%plot(f,db(abs(ZinCON_1)))
+%plot(f,db(abs(ZinCON_n)), '-.')
+%legend()
+%hold off
+
+%% Air load
+%first approximation whit e2=0 is for L/10
+n=10;
+%calculating air impedance load
+ZL0=0.25*(rho.*(omega.^2)./(pi*c))+1i*0.61*rho.*omega./(pi*a0*exp(m*L));
+flare=atan(a0*(exp(m*L)-1)/L);
+ZL=ZL0*2/(1+cos(flare));
+
+%calculating new Zin
+delta=1/n;
+for i=1:n
+    a2 = a0*exp(m*(n-i+1)*delta);
+    a1 = a0*exp(m*(n-i)*delta);
+    x1 = (a1*delta)/(a2-a1);
+    x2 = x1+delta;
+    theta1 = atan(k*x1);
+    theta2 = atan(k*x2);
+    S1 = pi*(a1^2);
+    S2 = pi*(a2^2);
+
+    numCON = 1i*ZL.*(sin(k*delta-theta2)./sin(theta2))+(rho*c/S2)*sin(k*delta);
+    denCON = ZL.*(sin(k*delta+theta1-theta2)./(sin(theta1).*sin(theta2)))-(1i*rho*c/S2).*(sin(k*delta+theta1)./sin(theta1));
+    ZinCON_10 = (rho*c/S1)*numCON./denCON;
+end
