@@ -7,13 +7,13 @@ clc
 
 rho = 1.225;     %air density    [kg/m^3]
 c = 343;         %speed in air   [m/s]
-Zair = 0;        %air impedance %per ora 0
+Zair = rho*c;    %air impedance
 a0 = 0.01;       %radius of exponential horn's section: a = a0*exp(m*x) [m]
 m = 4;
 L = 0.4;         %total length of the horn [m]
 fmin = 1;        %frequency study range [fmin, fmax] [Hz]
 fmax = 2000;
-freq_res = 10000;  %resolution of the frequency interval
+freq_res = 10000;  %resolution of the frequency interval for the impedances' plots
 
 f = linspace(fmin,fmax,freq_res);  %frequency axis [Hz]
 omega = 2*pi*f;         %frequency axis [rad/s]
@@ -25,7 +25,7 @@ theta = atan(m./b);     %geometrical quantity [/]
 S1 = pi*a0^2;               %throat section [m^2]
 S2 = pi*(a0*exp(L*m))^2;    %mouse section [m^2]
 
-res = 1000;       %number of points used in the plots
+res = 1000;       %number of points used in the axial sections' plots
 
 
 %% EXPONENTIAL HORN
@@ -36,18 +36,18 @@ numEXP = Zair*cos(b*L+theta)+1i*(rho*c/S2)*sin(b*L);
 denEXP = 1i*Zair*sin(b*L)+(rho*c/S2)*cos(b*L-theta);
 ZinEXP = (rho*c/S1)*numEXP./denEXP;
 
-%figure(1)
-%plot(x, a, 'k', 'linewidth', 2)
-%hold on
-%plot(x, -a, 'k', 'linewidth', 2)
-%hold off
-%yline(0, '-.')
+figure(1)
+plot(x, a, 'k', 'linewidth', 2)
+hold on
+plot(x, -a, 'k', 'linewidth', 2)
+hold off
+yline(0, '-.')
 
-%figure(2)
-%subplot(2,1,1)
-%plot(f, db(abs(ZinEXP)))
-%subplot(2,1,2)
-%plot(f, angle(ZinEXP))
+figure(2)
+subplot(2,1,1)
+plot(f, db(abs(ZinEXP)))
+subplot(2,1,2)
+plot(f, angle(ZinEXP))
 
 
 %% 1 CONICAL HORN
@@ -68,68 +68,23 @@ denCON = Zload*(sin(k*L+theta1-theta2)./(sin(theta1).*sin(theta2)))-(1i*rho*c/S2
 ZinCON_1 = (rho*c/S1)*numCON./denCON;
 
 
-%figure(3)
-%plot(x, a, 'k', 'linewidth', 2)
-%hold on
-%plot(x, -a, 'k', 'linewidth', 2)
-%hold off
-%yline(0, '-.')
+figure(3)
+plot(x, a, 'k', 'linewidth', 2)
+hold on
+plot(x, -a, 'k', 'linewidth', 2)
+hold off
+yline(0, '-.')
 
-%figure(4)
-%subplot(2,1,1)
-%plot(f, db(abs(ZinCON_1)))
-%subplot(2,1,2)
-%plot(f, angle(ZinCON_1))
-
-
-%% n CONICAL HORNS
-
-n = 5;
-delta = L/n;
-
-points = round(res/n);
-
-Zload = Zair;
-
-for i = 1:n
-    a2 = a0*exp(m*(n-i+1)*delta);
-    a1 = a0*exp(m*(n-i)*delta);
-    x1 = (a1*delta)/(a2-a1);
-    x2 = x1+delta;
-    theta1 = atan(k*x1);
-    theta2 = atan(k*x2);
-    S1 = pi*(a1^2);
-    S2 = pi*(a2^2);
-    disp([a1,a2])
-    x = linspace(0, delta, points);
-    slope = (a2-a1)/delta;
-    a = slope*x + a1;
-    
-    numCON = 1i*Zload.*(sin(k*delta-theta2)./sin(theta2))+(rho*c/S2)*sin(k*delta);
-    denCON = Zload.*(sin(k*delta+theta1-theta2)./(sin(theta1).*sin(theta2)))-(1i*rho*c/S2).*(sin(k*delta+theta1)./sin(theta1));
-    ZinCON_n = (rho*c/S1)*numCON./denCON;
-    
-    Zload = ZinCON_n;
-    
-    %figure(5)
-    %plot((n-i)*delta+x, a, 'k', 'linewidth', 2)
-    %hold on
-    %plot((n-i)*delta+x, -a, 'k', 'linewidth', 2)
-    %yline(0, '-.')
-end
-
-%hold off
-
-%figure(6)
-%subplot(2,1,1)
-%plot(f,db(abs(ZinCON_n)))
-%subplot(2,1,2)
-%plot(f, angle(ZinCON_n))
+figure(4)
+subplot(2,1,1)
+plot(f, db(abs(ZinCON_1)))
+subplot(2,1,2)
+plot(f, angle(ZinCON_1))
 
 
 %% FROM 1 TO n CONICAL HORNS
 
-n = 10;
+n = 30;
 
 deltas = zeros(1,n);
 
@@ -160,20 +115,24 @@ for j = 1:n
         ZinCON_n = (rho*c/S1)*numCON./denCON;
 
         Zload = ZinCON_n;
-
-        %figure(4+j)
-        %plot((j-i)*delta+x, a, 'k', 'linewidth', 2)
-        %hold on
-        %plot((j-i)*delta+x, -a, 'k', 'linewidth', 2)
-        %yline(0, '-.')
+        
+        if j == n
+            figure(7)
+            plot((j-i)*delta+x, a, 'k', 'linewidth', 2)
+            hold on
+            plot((j-i)*delta+x, -a, 'k', 'linewidth', 2)
+            yline(0, '-.')
+        end
     end
-    %hold off
+    hold off
     
-    %figure(4+n+j)
-    %subplot(2,1,1)
-    %plot(f,db(abs(ZinCON_n)))
-    %subplot(2,1,2)
-    %plot(f, angle(ZinCON_n))
+    if j == n
+        figure(8)
+        subplot(2,1,1)
+        plot(f,db(abs(ZinCON_n)))
+        subplot(2,1,2)
+        plot(f, angle(ZinCON_n))
+    end
     
     for i = 1:length(f)
         e1(j) = e1(j) + (abs(ZinCON_n(i) - ZinEXP(i)))^2;
@@ -181,40 +140,53 @@ for j = 1:n
     e1(j) = e1(j)/(2*pi*(fmax-fmin));
     
     
-    [pks_CON, locs_CON] = findpeaks(abs(ZinCON_n));
-    [pks_EXP, locs_EXP] = findpeaks(abs(ZinEXP));
+    [pks_CON, locs_CON] = findpeaks(real(ZinCON_n));
+    [pks_EXP, locs_EXP] = findpeaks(real(ZinEXP));
+    
+    argmax_omega_CON = f(locs_CON);
+    argmax_omega_EXP = f(locs_EXP);
+    
     for i = 1:5
-        e2(j) = e2(j) + abs(locs_CON(i)-locs_EXP(i));
+        e2(j) = e2(j) + abs(argmax_omega_CON(i)-argmax_omega_EXP(i));
     end
 end
 
-%figure(n+j+4+1)
-%stem(deltas,e1)
-%figure(n+j+4+2)
-%stem(deltas,e2)
+figure(9)
+stem(deltas,e1)
+figure(10)
+stem(deltas,e2)
 
 
 %%
 
-%figure(50)
-%plot(f,db(abs(ZinEXP)), 'linewidth', 2)
-%hold on
-%plot(f,db(abs(ZinCON_1)))
-%plot(f,db(abs(ZinCON_n)), '-.')
-%legend()
-%hold off
+figure(11)
+plot(f,db(abs(ZinEXP)), 'linewidth', 2)
+hold on
+plot(f,db(abs(ZinCON_1)))
+plot(f,db(abs(ZinCON_n)), '-.')
+legend()
+hold off
 
 %% Air load
 %first approximation whit e2=0 is for L/10
-n=10;
+n = 10;
+delta = L/n;
+
 %calculating air impedance load
-ZL0=0.25*(rho.*(omega.^2)./(pi*c))+1i*0.61*rho.*omega./(pi*a0*exp(m*L));
-flare=atan(a0*(exp(m*L)-1)/L);
-ZL=ZL0*2/(1+cos(flare));
+a = a0*exp(m*L);        %radius of the unflanged cylinder
+Sp = pi*a^2;            %cross section of the unflanged cylinder
+ZL0 = 0.25*(rho.*(omega.^2)./(pi*c))+1i*0.61*rho.*omega./(pi*a);
+
+%considering only the 10th cone, before the cylinder
+a2 = a0*exp(m*(10*delta));      %end radius
+a1 = a0*exp(m*(9*delta));       %start radius
+flare = atan((a2-a1)/delta);    %flare angle of the 10th cone
+Ss = 2*Sp/(1+cos(flare));       %area of the wavefront leaving te cone
+
+ZL = ZL0*(Sp/Ss);
 
 %calculating new Zin
-delta=1/n;
-for i=1:n
+for i = 1:n
     a2 = a0*exp(m*(n-i+1)*delta);
     a1 = a0*exp(m*(n-i)*delta);
     x1 = (a1*delta)/(a2-a1);
@@ -227,4 +199,13 @@ for i=1:n
     numCON = 1i*ZL.*(sin(k*delta-theta2)./sin(theta2))+(rho*c/S2)*sin(k*delta);
     denCON = ZL.*(sin(k*delta+theta1-theta2)./(sin(theta1).*sin(theta2)))-(1i*rho*c/S2).*(sin(k*delta+theta1)./sin(theta1));
     ZinCON_10 = (rho*c/S1)*numCON./denCON;
+    
+    ZL = ZinCON_10;
 end
+
+
+figure(12)
+subplot(2,1,1)
+plot(f, db(abs(ZinCON_10)))
+subplot(2,1,2)
+plot(f, angle(ZinCON_10))
