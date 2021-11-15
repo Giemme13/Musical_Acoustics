@@ -7,7 +7,7 @@ clc
 
 rho = 1.225;     %air density    [kg/m^3]
 c = 343;         %speed in air   [m/s]
-Zair = rho*c;    %air impedance
+Zload = 0;    %air impedance
 a0 = 0.01;       %radius of exponential horn's section: a = a0*exp(m*x) [m]
 m = 4;
 L = 0.4;         %total length of the horn [m]
@@ -31,8 +31,8 @@ res = 1000;       %number of points used in the axial sections' plots
 
 x = linspace(0,L,res);
 a = a0*exp(m*x);
-numEXP = Zair*cos(b*L+theta)+1i*(rho*c/S2)*sin(b*L);
-denEXP = 1i*Zair*sin(b*L)+(rho*c/S2)*cos(b*L-theta);
+numEXP = Zload*cos(b*L+theta)+1i*(rho*c/S2)*sin(b*L);
+denEXP = 1i*Zload*sin(b*L)+(rho*c/S2)*cos(b*L-theta);
 ZinEXP = (rho*c/S1)*numEXP./denEXP;
 
 figure(1)
@@ -73,7 +73,7 @@ theta2 = atan(k*x2);
 x = linspace(0,L,res);
 slope = (a2-a1)/L;
 a = slope*x + a1;
-Zload = Zair;
+
 numCON = 1i*Zload*(sin(k*L-theta2)/sin(theta2))+(rho*c/S2)*sin(k*L);
 denCON = Zload*(sin(k*L+theta1-theta2)./(sin(theta1).*sin(theta2)))-(1i*rho*c/S2).*(sin(k*L+theta1)./sin(theta1));
 ZinCON_1 = (rho*c/S1)*numCON./denCON;
@@ -105,7 +105,7 @@ title('Phase', 'fontsize', 16)
 sgtitle('Approximation of input impedance through 1 conical horn', 'fontsize', 20)
 
 
-%% FROM 1 TO n CONICAL HORNS
+%% FROM 1 TO n CONICAL HORNS  (points a) and b) )
 
 n = 20;
 
@@ -119,7 +119,7 @@ for j = 1:n
     deltas(j) = delta;
     points = round(res/j);
     
-    Zload = Zair;
+    ZL = Zload;
     for i = 1:j
         a2 = a0*exp(m*(j-i+1)*delta);
         a1 = a0*exp(m*(j-i)*delta);
@@ -133,11 +133,11 @@ for j = 1:n
         slope = (a2-a1)/delta;
         a = slope*x + a1;
 
-        numCON = 1i*Zload.*(sin(k*delta-theta2)./sin(theta2))+(rho*c/S2)*sin(k*delta);
-        denCON = Zload.*(sin(k*delta+theta1-theta2)./(sin(theta1).*sin(theta2)))-(1i*rho*c/S2).*(sin(k*delta+theta1)./sin(theta1));
+        numCON = 1i*ZL.*(sin(k*delta-theta2)./sin(theta2))+(rho*c/S2)*sin(k*delta);
+        denCON = ZL.*(sin(k*delta+theta1-theta2)./(sin(theta1).*sin(theta2)))-(1i*rho*c/S2).*(sin(k*delta+theta1)./sin(theta1));
         ZinCON_n = (rho*c/S1)*numCON./denCON;
 
-        Zload = ZinCON_n;
+        ZL = ZinCON_n;
         
         if j == n
             figure(1)
@@ -164,8 +164,8 @@ for j = 1:n
     e1(j) = e1(j)/(2*pi*(fmax-fmin));
     
     
-    [pks_CON, locs_CON] = findpeaks(real(ZinCON_n));
-    [pks_EXP, locs_EXP] = findpeaks(real(ZinEXP));
+    [pks_CON, locs_CON] = findpeaks(abs(ZinCON_n));
+    [pks_EXP, locs_EXP] = findpeaks(abs(ZinEXP));
     
     argmax_omega_CON = f(locs_CON);
     argmax_omega_EXP = f(locs_EXP);
@@ -207,7 +207,7 @@ title('Error 2', 'fontsize', 16)
 sgtitle(strcat(['Errors of the approximation with ', num2str(n), ' conical horns']), 'fontsize', 20)
 
 
-%% UNIFORM SAMPLING ON y-AXIS
+%% UNIFORM SAMPLING ON y-AXIS  (extra point)
 
 n = n;
 
@@ -223,7 +223,7 @@ for j = 1:n
     
     height = H/j;
     
-    Zload = Zair;
+    ZL = Zload;
     
     len = L;
     
@@ -246,11 +246,11 @@ for j = 1:n
         slope = (a2-a1)/delta;
         a = slope*x + a1;
 
-        numCON = 1i*Zload.*(sin(k*delta-theta2)./sin(theta2))+(rho*c/S2)*sin(k*delta);
-        denCON = Zload.*(sin(k*delta+theta1-theta2)./(sin(theta1).*sin(theta2)))-(1i*rho*c/S2).*(sin(k*delta+theta1)./sin(theta1));
+        numCON = 1i*ZL.*(sin(k*delta-theta2)./sin(theta2))+(rho*c/S2)*sin(k*delta);
+        denCON = ZL.*(sin(k*delta+theta1-theta2)./(sin(theta1).*sin(theta2)))-(1i*rho*c/S2).*(sin(k*delta+theta1)./sin(theta1));
         ZinCON_ysamp = (rho*c/S1)*numCON./denCON;
         
-        Zload = ZinCON_ysamp;
+        ZL = ZinCON_ysamp;
         
         if j == n
             figure(1)
@@ -279,8 +279,8 @@ for j = 1:n
     e1_ysamp(j) = e1_ysamp(j)/(2*pi*(fmax-fmin));
     
     
-    [pks_CON, locs_CON] = findpeaks(real(ZinCON_ysamp));
-    [pks_EXP, locs_EXP] = findpeaks(real(ZinEXP));
+    [pks_CON, locs_CON] = findpeaks(abs(ZinCON_ysamp));
+    [pks_EXP, locs_EXP] = findpeaks(abs(ZinEXP));
     
     argmax_omega_CON = f(locs_CON);
     argmax_omega_EXP = f(locs_EXP);
@@ -378,12 +378,12 @@ title('Phase')
 sgtitle('Comparison between different sampling strategies', 'fontsize', 20)
 
 
-%% Air load
+%% Air load    (point d) )
 %first approximation whit e2=0 is for L/10
 n = 10;
 delta = L/n;
 
-%calculating air impedance load
+%computing air impedance load
 a = a0*exp(m*L);        %radius of the unflanged cylinder
 Sp = pi*a^2;            %cross section of the unflanged cylinder
 ZL0 = 0.25*(rho.*(omega.^2)./(pi*c))+1i*0.61*rho.*omega./(pi*a);
@@ -396,7 +396,7 @@ Ss = 2*Sp/(1+cos(flare));       %area of the wavefront leaving te cone
 
 ZL = ZL0*(Sp/Ss);
 
-%calculating new Zin
+%calculating Z_IN of the horn
 for i = 1:n
     a2 = a0*exp(m*(n-i+1)*delta);
     a1 = a0*exp(m*(n-i)*delta);
@@ -431,7 +431,7 @@ title('Phase', 'fontsize', 16)
 sgtitle('Approximation with 10 conical horns considering air load', 'fontsize', 20)
 
 
-%% COMPOUND HORN
+%% COMPOUND HORN   (point e) )
 
 %Data
 L_cyl = 0.6;
