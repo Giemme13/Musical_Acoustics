@@ -7,7 +7,7 @@ clc
 
 rho = 1.225;     %air density    [kg/m^3]
 c = 343;         %speed in air   [m/s]
-Zload = 0;    %air impedance
+Zload = 0;       %mouth impedance
 a0 = 0.01;       %radius of exponential horn's section: a = a0*exp(m*x) [m]
 m = 4;
 L = 0.4;         %total length of the horn [m]
@@ -43,7 +43,7 @@ yline(0, '-.')
 hold off
 xlabel('Length [m]', 'fontsize', 15)
 ylabel('Cross-section radius [m]', 'fontsize', 15)
-title('Axial section of the exponential horn', 'fontsize', 20)
+%title('Axial section of the exponential horn', 'fontsize', 20)
 
 figure(2)
 subplot(2,1,1)
@@ -58,7 +58,7 @@ ylabel('$\angle Z_{IN}\,[deg]$', 'interpreter', 'latex', 'fontsize', 15)
 yticks([-pi,-pi/2,0,pi/2,pi])
 yticklabels([-180,-90,0,90,180])
 title('Phase', 'fontsize', 16)
-sgtitle('Analytical input impedance of the exponential horn', 'fontsize', 20)
+%sgtitle('Analytical input impedance of the exponential horn', 'fontsize', 20)
 
 
 %% 1 CONICAL HORN
@@ -87,7 +87,7 @@ yline(0, '-.')
 hold off
 xlabel('Length [m]', 'fontsize', 15)
 ylabel('Cross-section radius [m]', 'fontsize', 15)
-title('Approximation with 1 conical horn', 'fontsize', 20)
+%title('Approximation with 1 conical horn', 'fontsize', 20)
 
 figure(2)
 subplot(2,1,1)
@@ -102,12 +102,12 @@ ylabel('$\angle Z_{IN}\,[deg]$', 'interpreter', 'latex', 'fontsize', 15)
 yticks([-pi,-pi/2,0,pi/2,pi])
 yticklabels([-180,-90,0,90,180])
 title('Phase', 'fontsize', 16)
-sgtitle('Approximation of input impedance through 1 conical horn', 'fontsize', 20)
+%sgtitle('Approximation of input impedance through 1 conical horn', 'fontsize', 20)
 
 
 %% FROM 1 TO n CONICAL HORNS  (points a) and b) )
 
-n = 20;
+n = 15;
 
 deltas = zeros(1,n);
 
@@ -148,6 +148,10 @@ for j = 1:n
             xline((j-i)*delta, '--', 'color', [0.8500, 0.3250, 0.0980], 'linewidth', 0.2)
         end
     end
+    if j == n
+        line([2*delta,3*delta],[0.03,0.03], 'color','k')
+        text(2.4*delta,0.032,'$\delta$', 'interpreter', 'latex', 'fontsize', 20)
+    end
     hold off
     
     if j == n
@@ -167,8 +171,8 @@ for j = 1:n
     [pks_CON, locs_CON] = findpeaks(abs(ZinCON_n));
     [pks_EXP, locs_EXP] = findpeaks(abs(ZinEXP));
     
-    argmax_omega_CON = f(locs_CON);
-    argmax_omega_EXP = f(locs_EXP);
+    argmax_omega_CON = 2*pi*f(locs_CON);
+    argmax_omega_EXP = 2*pi*f(locs_EXP);
     
     for i = 1:5
         e2(j) = e2(j) + abs(argmax_omega_CON(i)-argmax_omega_EXP(i));
@@ -176,9 +180,10 @@ for j = 1:n
 end
 
 figure(1)
+
 xlabel('Length [m]', 'fontsize', 15)
 ylabel('Cross-section radius [m]', 'fontsize', 15)
-title(strcat(['Approximation with ', num2str(n), ' conical horns']), 'fontsize', 20)
+%title(strcat(['Approximation with ', num2str(n), ' conical horns']), 'fontsize', 20)
 
 figure(2)
 subplot(2,1,1)
@@ -191,7 +196,7 @@ ylabel('$\angle Z_{IN}\,[deg]$', 'interpreter', 'latex', 'fontsize', 15)
 yticks([-pi,-pi/2,0,pi/2,pi])
 yticklabels([-180,-90,0,90,180])
 title('Phase', 'fontsize', 16)
-sgtitle(strcat(['Approximation of input impedance through ',num2str(n), ' conical horns']), 'fontsize', 20)
+%sgtitle(strcat(['Approximation of input impedance through ',num2str(n), ' conical horns']), 'fontsize', 20)
 
 figure(3)
 subplot(2,1,1)
@@ -204,7 +209,7 @@ stem(deltas,e2)
 xlabel('$\delta$', 'interpreter', 'latex', 'fontsize', 15)
 ylabel('$e_2$', 'interpreter', 'latex', 'fontsize', 15)
 title('Error 2', 'fontsize', 16)
-sgtitle(strcat(['Errors of the approximation with ', num2str(n), ' conical horns']), 'fontsize', 20)
+%sgtitle(strcat(['Errors of the approximation with ', num2str(n), ' conical horns']), 'fontsize', 20)
 
 
 %% UNIFORM SAMPLING ON y-AXIS  (extra point)
@@ -282,8 +287,8 @@ for j = 1:n
     [pks_CON, locs_CON] = findpeaks(abs(ZinCON_ysamp));
     [pks_EXP, locs_EXP] = findpeaks(abs(ZinEXP));
     
-    argmax_omega_CON = f(locs_CON);
-    argmax_omega_EXP = f(locs_EXP);
+    argmax_omega_CON = 2*pi*f(locs_CON);
+    argmax_omega_EXP = 2*pi*f(locs_EXP);
     
     for i = 1:5
         e2_ysamp(j) = e2_ysamp(j) + abs(argmax_omega_CON(i)-argmax_omega_EXP(i));
@@ -293,7 +298,7 @@ end
 figure(1)
 xlabel('Length [m]', 'fontsize', 15)
 ylabel('Cross-section radius [m]', 'fontsize', 15)
-title(strcat(['Approximation with ', num2str(n), ' conical horns']), 'fontsize', 20)
+%title(strcat(['Approximation with ', num2str(n), ' conical horns']), 'fontsize', 20)
 
 figure(2)
 subplot(2,1,1)
@@ -306,20 +311,21 @@ ylabel('$\angle Z_{IN}\,[deg]$', 'interpreter', 'latex', 'fontsize', 15)
 yticks([-pi,-pi/2,0,pi/2,pi])
 yticklabels([-180,-90,0,90,180])
 title('Phase', 'fontsize', 16)
-sgtitle(strcat(['Approximation of input impedance through ',num2str(n), ' conical horns']), 'fontsize', 20)
+%sgtitle(strcat(['Approximation of input impedance through ',num2str(n), ' conical horns']), 'fontsize', 20)
 
 figure(3)
 subplot(2,1,1)
 stem(linspace(1,n,n),e1_ysamp)
-xlabel('$\delta$', 'interpreter', 'latex', 'fontsize', 15)
+ylim([1,1000]*10^15)
+xlabel('$n$', 'interpreter', 'latex', 'fontsize', 15)
 ylabel('$e_1$', 'interpreter', 'latex', 'fontsize', 15)
 title('Error 1', 'fontsize', 16)
 subplot(2,1,2)
 stem(linspace(1,n,n),e2_ysamp)
-xlabel('$\delta$', 'interpreter', 'latex', 'fontsize', 15)
+xlabel('$n$', 'interpreter', 'latex', 'fontsize', 15)
 ylabel('$e_2$', 'interpreter', 'latex', 'fontsize', 15)
 title('Error 2', 'fontsize', 16)
-sgtitle(strcat(['Errors of the approximation with ', num2str(n), ' conical horns']), 'fontsize', 20)
+%sgtitle(strcat(['Errors of the approximation with ', num2str(n), ' conical horns']), 'fontsize', 20)
 
 
 %% COMPARISON BETWEEN EXP HORN, 1 CONICAL, n CONICAL
@@ -348,7 +354,7 @@ ylabel('$\angle Z_{IN}\,[deg]$', 'interpreter', 'latex', 'fontsize', 15)
 yticks([-pi,-pi/2,0,pi/2,pi])
 yticklabels([-180,-90,0,90,180])
 title('Phase')
-sgtitle('Comparison between the exponential horn and approximation with conical horns', 'fontsize', 20)
+%sgtitle('Comparison between the exponential horn and approximation with conical horns', 'fontsize', 20)
 
 
 %% COMPARISON BETWEEN DIFFERENT SAMPLING STRATEGIES
@@ -375,7 +381,7 @@ ylabel('$\angle Z_{IN}\,[deg]$', 'interpreter', 'latex', 'fontsize', 15)
 yticks([-pi,-pi/2,0,pi/2,pi])
 yticklabels([-180,-90,0,90,180])
 title('Phase')
-sgtitle('Comparison between different sampling strategies', 'fontsize', 20)
+%sgtitle('Comparison between different sampling strategies', 'fontsize', 20)
 
 
 %% Air load    (point d) )
@@ -428,7 +434,7 @@ ylabel('$\angle Z_{IN}\,[deg]$', 'interpreter', 'latex', 'fontsize', 15)
 yticks([-pi,-pi/2,0,pi/2,pi])
 yticklabels([-180,-90,0,90,180])
 title('Phase', 'fontsize', 16)
-sgtitle('Approximation with 10 conical horns considering air load', 'fontsize', 20)
+%sgtitle('Approximation with 10 conical horns considering air load', 'fontsize', 20)
 
 
 %% COMPOUND HORN   (point e) )
@@ -464,5 +470,5 @@ ylabel('$\angle Z_{IN}\,[deg]$', 'interpreter', 'latex', 'fontsize', 15)
 yticks([-pi,-pi/2,0,pi/2,pi])
 yticklabels([-180,-90,0,90,180])
 title('Phase', 'fontsize', 16)
-sgtitle('Compound horn', 'fontsize', 20)
+%sgtitle('Compound horn', 'fontsize', 20)
 
