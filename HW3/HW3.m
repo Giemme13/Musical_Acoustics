@@ -35,7 +35,7 @@ numEXP = Zload*cos(b*L+theta)+1i*(rho*c/S2)*sin(b*L);
 denEXP = 1i*Zload*sin(b*L)+(rho*c/S2)*cos(b*L-theta);
 ZinEXP = (rho*c/S1)*numEXP./denEXP;
 
-figure(1)
+figure()
 plot(x, a, 'k', 'linewidth', 2)
 hold on
 plot(x, -a, 'k', 'linewidth', 2)
@@ -45,14 +45,16 @@ xlabel('Length [m]', 'fontsize', 15)
 ylabel('Cross-section radius [m]', 'fontsize', 15)
 %title('Axial section of the exponential horn', 'fontsize', 20)
 
-figure(2)
+figure()
 subplot(2,1,1)
 plot(f, db(abs(ZinEXP)))
+grid on
 xlabel('Frequency [Hz]', 'fontsize', 15)
 ylabel('$|Z_{IN}|\,[dB]$', 'interpreter', 'latex', 'fontsize', 15)
 title('Magnitude', 'fontsize', 16)
 subplot(2,1,2)
 plot(f, angle(ZinEXP))
+grid on
 xlabel('Frequency [Hz]', 'fontsize', 15)
 ylabel('$\angle Z_{IN}\,[deg]$', 'interpreter', 'latex', 'fontsize', 15)
 yticks([-pi,-pi/2,0,pi/2,pi])
@@ -79,7 +81,7 @@ denCON = Zload*(sin(k*L+theta1-theta2)./(sin(theta1).*sin(theta2)))-(1i*rho*c/S2
 ZinCON_1 = (rho*c/S1)*numCON./denCON;
 
 
-figure(1)
+figure()
 plot(x, a, 'k', 'linewidth', 2)
 hold on
 plot(x, -a, 'k', 'linewidth', 2)
@@ -89,14 +91,16 @@ xlabel('Length [m]', 'fontsize', 15)
 ylabel('Cross-section radius [m]', 'fontsize', 15)
 %title('Approximation with 1 conical horn', 'fontsize', 20)
 
-figure(2)
+figure()
 subplot(2,1,1)
 plot(f, db(abs(ZinCON_1)))
+grid on
 xlabel('Frequency [Hz]', 'fontsize', 15)
 ylabel('$|Z_{IN}|\,[dB]$', 'interpreter', 'latex', 'fontsize', 15)
 title('Magnitude', 'fontsize', 16)
 subplot(2,1,2)
 plot(f, angle(ZinCON_1))
+grid on
 xlabel('Frequency [Hz]', 'fontsize', 15)
 ylabel('$\angle Z_{IN}\,[deg]$', 'interpreter', 'latex', 'fontsize', 15)
 yticks([-pi,-pi/2,0,pi/2,pi])
@@ -107,7 +111,7 @@ title('Phase', 'fontsize', 16)
 
 %% FROM 1 TO n CONICAL HORNS  (points a) and b) )
 
-n = 15;
+n = 20;
 
 deltas = zeros(1,n);
 
@@ -180,17 +184,18 @@ for j = 1:n
 end
 
 figure(1)
-
 xlabel('Length [m]', 'fontsize', 15)
 ylabel('Cross-section radius [m]', 'fontsize', 15)
 %title(strcat(['Approximation with ', num2str(n), ' conical horns']), 'fontsize', 20)
 
 figure(2)
 subplot(2,1,1)
+grid on
 xlabel('Frequency [Hz]', 'fontsize', 15)
 ylabel('$|Z_{IN}|\,[dB]$', 'interpreter', 'latex', 'fontsize', 15)
 title('Magnitude', 'fontsize', 16)
 subplot(2,1,2)
+grid on
 xlabel('Frequency [Hz]', 'fontsize', 15)
 ylabel('$\angle Z_{IN}\,[deg]$', 'interpreter', 'latex', 'fontsize', 15)
 yticks([-pi,-pi/2,0,pi/2,pi])
@@ -198,7 +203,7 @@ yticklabels([-180,-90,0,90,180])
 title('Phase', 'fontsize', 16)
 %sgtitle(strcat(['Approximation of input impedance through ',num2str(n), ' conical horns']), 'fontsize', 20)
 
-figure(3)
+figure()
 subplot(2,1,1)
 stem(deltas,e1)
 xlabel('$\delta$', 'interpreter', 'latex', 'fontsize', 15)
@@ -302,10 +307,12 @@ ylabel('Cross-section radius [m]', 'fontsize', 15)
 
 figure(2)
 subplot(2,1,1)
+grid on
 xlabel('Frequency [Hz]', 'fontsize', 15)
 ylabel('$|Z_{IN}|\,[dB]$', 'interpreter', 'latex', 'fontsize', 15)
 title('Magnitude', 'fontsize', 16)
 subplot(2,1,2)
+grid on
 xlabel('Frequency [Hz]', 'fontsize', 15)
 ylabel('$\angle Z_{IN}\,[deg]$', 'interpreter', 'latex', 'fontsize', 15)
 yticks([-pi,-pi/2,0,pi/2,pi])
@@ -313,7 +320,7 @@ yticklabels([-180,-90,0,90,180])
 title('Phase', 'fontsize', 16)
 %sgtitle(strcat(['Approximation of input impedance through ',num2str(n), ' conical horns']), 'fontsize', 20)
 
-figure(3)
+figure()
 subplot(2,1,1)
 stem(linspace(1,n,n),e1_ysamp)
 ylim([1,1000]*10^15)
@@ -332,23 +339,25 @@ title('Error 2', 'fontsize', 16)
 
 str = strcat(['Approx - ', num2str(n), ' conical horns']);
 
-figure(1)
+figure()
 subplot(2,1,1)
-plot(f,db(abs(ZinEXP)), 'linewidth', 2)
+plot(f,db(abs(ZinEXP)), 'linewidth', 3)
 hold on
-plot(f,db(abs(ZinCON_1)), 'linewidth', 2)
-plot(f,db(abs(ZinCON_n)), '-.', 'linewidth', 2)
+plot(f,db(abs(ZinCON_1)), '-.', 'linewidth', 2)
+plot(f,db(abs(ZinCON_n)), '--', 'linewidth', 2)
 hold off
+grid on
 xlabel('Frequency [Hz]', 'fontsize', 15)
 ylabel('$|Z_{IN}|\,[dB]$', 'interpreter', 'latex', 'fontsize', 15)
 title('Magnitude')
 legend('Analytical solution', 'Approx - 1 conical horn', str)
 subplot(2,1,2)
-plot(f, angle(ZinEXP), 'linewidth', 2)
+plot(f, angle(ZinEXP), 'linewidth', 3)
 hold on
-plot(f, angle(ZinCON_1), 'linewidth', 2)
-plot(f, angle(ZinCON_n), '-.', 'linewidth', 2)
+plot(f, angle(ZinCON_1), '-.', 'linewidth', 2)
+plot(f, angle(ZinCON_n), '--', 'linewidth', 2)
 hold off
+grid on
 xlabel('Frequency [Hz]', 'fontsize', 15)
 ylabel('$\angle Z_{IN}\,[deg]$', 'interpreter', 'latex', 'fontsize', 15)
 yticks([-pi,-pi/2,0,pi/2,pi])
@@ -359,23 +368,25 @@ title('Phase')
 
 %% COMPARISON BETWEEN DIFFERENT SAMPLING STRATEGIES
 
-figure(1)
+figure()
 subplot(2,1,1)
-plot(f,db(abs(ZinEXP)), 'linewidth', 2)
+plot(f,db(abs(ZinEXP)), 'linewidth', 3)
 hold on
 plot(f,db(abs(ZinCON_n)), '-.', 'linewidth', 2)
-plot(f,db(abs(ZinCON_ysamp)), '.', 'linewidth', 2)
+plot(f,db(abs(ZinCON_ysamp)), '--', 'linewidth', 1)
 hold off
+grid on
 xlabel('Frequency [Hz]', 'fontsize', 15)
 ylabel('$|Z_{IN}|\,[dB]$', 'interpreter', 'latex', 'fontsize', 15)
 title('Magnitude')
 legend('Analytical solution', 'Uniform sampling on x-axis', 'Uniform sampling on y-axis')
 subplot(2,1,2)
-plot(f, angle(ZinEXP), 'linewidth', 2)
+plot(f, angle(ZinEXP), 'linewidth', 3)
 hold on
-plot(f, angle(ZinCON_n), 'linewidth', 2)
-plot(f, angle(ZinCON_ysamp), '-.', 'linewidth', 2)
+plot(f, angle(ZinCON_n), '-.', 'linewidth', 2)
+plot(f, angle(ZinCON_ysamp), '--', 'linewidth', 1)
 hold off
+grid on
 xlabel('Frequency [Hz]', 'fontsize', 15)
 ylabel('$\angle Z_{IN}\,[deg]$', 'interpreter', 'latex', 'fontsize', 15)
 yticks([-pi,-pi/2,0,pi/2,pi])
@@ -402,6 +413,22 @@ Ss = 2*Sp/(1+cos(flare));       %area of the wavefront leaving te cone
 
 ZL = ZL0*(Sp/Ss);
 
+figure()
+subplot(2,1,1)
+plot(f, db(abs(ZL)))
+grid on
+xlabel('Frequency [Hz]', 'fontsize', 15)
+ylabel('$|Z_L|\,[dB]$', 'interpreter', 'latex', 'fontsize', 15)
+title('Magnitude', 'fontsize', 16)
+subplot(2,1,2)
+plot(f, angle(ZL))
+grid on
+xlabel('Frequency [Hz]', 'fontsize', 15)
+ylabel('$\angle Z_L\,[deg]$', 'interpreter', 'latex', 'fontsize', 15)
+yticks([0,pi/4,pi/2])
+yticklabels([0,90,180])
+title('Phase', 'fontsize', 16)
+
 %calculating Z_IN of the horn
 for i = 1:n
     a2 = a0*exp(m*(n-i+1)*delta);
@@ -421,14 +448,16 @@ for i = 1:n
 end
 
 
-figure(1)
+figure()
 subplot(2,1,1)
 plot(f, db(abs(ZinCON_10)))
+grid on
 xlabel('Frequency [Hz]', 'fontsize', 15)
 ylabel('$|Z_{IN}|\,[dB]$', 'interpreter', 'latex', 'fontsize', 15)
 title('Magnitude', 'fontsize', 16)
 subplot(2,1,2)
 plot(f, angle(ZinCON_10))
+grid on
 xlabel('Frequency [Hz]', 'fontsize', 15)
 ylabel('$\angle Z_{IN}\,[deg]$', 'interpreter', 'latex', 'fontsize', 15)
 yticks([-pi,-pi/2,0,pi/2,pi])
@@ -457,18 +486,19 @@ for i=1:10
     tenMax(i) = argmax_omega_COMP(i);
 end
 
-figure(1)
+figure()
 subplot(2,1,1)
 plot(f, db(abs(ZinCYL)))
+grid on
 xlabel('Frequency [Hz]', 'fontsize', 15)
 ylabel('$|Z_{IN}|\,[dB]$', 'interpreter', 'latex', 'fontsize', 15)
 title('Magnitude', 'fontsize', 16)
 subplot(2,1,2)
 plot(f, angle(ZinCYL))
+grid on
 xlabel('Frequency [Hz]', 'fontsize', 15)
 ylabel('$\angle Z_{IN}\,[deg]$', 'interpreter', 'latex', 'fontsize', 15)
 yticks([-pi,-pi/2,0,pi/2,pi])
 yticklabels([-180,-90,0,90,180])
 title('Phase', 'fontsize', 16)
 %sgtitle('Compound horn', 'fontsize', 20)
-
