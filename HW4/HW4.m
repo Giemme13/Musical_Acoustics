@@ -15,3 +15,4 @@ Q=50;
 %% Mechanical characterization
 
 k=m*(2*pi*f0)^2;
+%Q to find resistance
