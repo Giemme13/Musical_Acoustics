@@ -111,7 +111,7 @@ title('Phase', 'fontsize', 16)
 
 %% FROM 1 TO n CONICAL HORNS  (points a) and b) )
 
-n = 20;
+n = 100;
 
 deltas = zeros(1,n);
 
