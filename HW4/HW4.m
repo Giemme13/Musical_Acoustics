@@ -6,32 +6,34 @@ clc
 %% DATA
 
 rho = 1.225;    %air density [kg/m^3]
-c = 343;        %sound velocity in air [m/s]
+c = 344;        %sound velocity in air [m/s]
 
+D = 0.07;       %diameter of the venting tube [m]
+L = 0.247;      %length of the venting tube [m]
+V = 0.02;       %volume of the cabinet [m^3]
 m = 0.0455;     %mass of the diaphragm [kg]
 fd = 49;        %damped resonance frequency not considering the cabinet [Hz]
 Q = 50;         %quality factor at resonance [\]
-D = 0.07;       %diameter of the venting tube [m]
-S = pi*D^2/4;   %cross sectional area of the venting tube [m^2]
-L = 0.247;      %length of the venting tube [m]
-V = 0.02;       %volume of the cabinet [m^3]
 
 %% Mechanical characterization
 
 R = 2*pi*fd*m/Q;     %equivalent damping coefficient of the mass-spring-damper system
-                     %omega_d = sqrt(k/m - R^2/(4m^2))
+%omega_d = sqrt(k/m - R^2/(4m^2))
 k = m*((2*pi*fd)^2 + R^2/(4*m^2));   %equivalent stiffness coefficient of
                                      %mass-spring-damped system
 f0 = sqrt(k/m)/(2*pi);      %natural resonance frequency [Hz]
 
 %% Equivalent circuit
 
-L1 = rho*(L+0.85*D);   %inductor for the mass of the venting tube
-R1 = rho*c/S;          %resistance for the dissipation inside the venting tube
-C1 = V/(rho*c^2);      %condenser for the air volume
-L2 = m;                %inductor for the mass of the loudspeaker
-C2 = 1/k;              %condenser for the equivalent spring of the loudspeaker
-R2 = R;                %resistance for the damping of the loudspeaker
+S = pi*D^2/4;               %cross sectional area of the venting tube [m^2]
+delta_L = 0.85*D/2;         %end correction on one end of the venting pipe
+
+L2 = rho*(L+2*delta_L)/S;   %inductor for the mass of the venting tube
+R2 = rho*c/S;               %resistance for the dissipation inside the venting tube
+C2 = V/(rho*c^2);           %condenser for the air volume
+L1 = m;                     %inductor for the mass of the loudspeaker
+C1 = 1/k;                   %condenser for the equivalent spring of the loudspeaker
+R1 = R;                     %resistance for the damping of the loudspeaker
 
 
 %% FRF of mechanical circuit
