@@ -45,7 +45,7 @@ FRF_mech = FRF_mech(1:(length(FRF_mech)-1)/2);
 
 time_step = out.SimulationMetadata.ModelInfo.SolverInfo.FixedStepSize;
 fs = 1/time_step;
-f_mech = linspace(0, fs/4, length(FRF_mech))/(2*pi);
+f_mech = linspace(0, fs/2, length(FRF_mech));
 
 figure(1)
 subplot(2,1,1)
@@ -76,7 +76,7 @@ FRF_elec = FRF_elec(1:(length(FRF_elec)-1)/2);
 
 time_step = out.SimulationMetadata.ModelInfo.SolverInfo.FixedStepSize;
 fs = 1/time_step;
-f_elec = linspace(0, fs/4, length(FRF_elec))/(2*pi);
+f_elec = linspace(0, fs/2, length(FRF_elec));
 
 figure(2)
 subplot(2,1,1)
