@@ -41,11 +41,11 @@ R1 = R;                     %resistance for the damping of the loudspeaker
 vel = fft(out.out_velocity.Data);
 force = fft(out.in_force.Data);
 FRF_mech = vel./force;
-FRF_mech = FRF_mech(length(FRF_mech)/2:end);
+FRF_mech = FRF_mech(1:(length(FRF_mech)-1)/2);
 
 time_step = out.SimulationMetadata.ModelInfo.SolverInfo.FixedStepSize;
 fs = 1/time_step;
-f_mech = linspace(0, fs/4, length(FRF_mech));
+f_mech = linspace(0, fs/4, length(FRF_mech))/(2*pi);
 
 figure(1)
 subplot(2,1,1)
@@ -72,11 +72,11 @@ title('Phase', 'fontsize', 20)
 current = fft(out.out_current.Data);
 voltage = fft(out.in_voltage.Data);
 FRF_elec = current./voltage;
-FRF_elec = FRF_elec(length(FRF_elec)/2:end);
+FRF_elec = FRF_elec(1:(length(FRF_elec)-1)/2);
 
 time_step = out.SimulationMetadata.ModelInfo.SolverInfo.FixedStepSize;
 fs = 1/time_step;
-f_elec = linspace(0, fs/4, length(FRF_elec));
+f_elec = linspace(0, fs/4, length(FRF_elec))/(2*pi);
 
 figure(2)
 subplot(2,1,1)
