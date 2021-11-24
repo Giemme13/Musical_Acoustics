@@ -63,6 +63,8 @@ hold off
 grid on
 xlabel('Frequency [Hz]', 'fontsize', 17)
 ylabel('$\angle Z\,[deg]$', 'interpreter', 'latex', 'fontsize', 17)
+yticks([-pi,-pi/2,0,pi/2,pi])
+yticklabels({'-180','-90','0','90','180'})
 title('Phase', 'fontsize', 20)
 
 %% FRF of electrical circuit
@@ -92,6 +94,8 @@ hold off
 grid on
 xlabel('Frequency [Hz]', 'fontsize', 17)
 ylabel('$\angle Z\,[deg]$', 'interpreter', 'latex', 'fontsize', 17)
+yticks([-pi,-pi/2,0,pi/2,pi])
+yticklabels({'-180','-90','0','90','180'})
 title('Phase', 'fontsize', 20)
 
 
@@ -116,4 +120,6 @@ hold off
 grid on
 xlabel('Frequency [Hz]', 'fontsize', 17)
 ylabel('$\angle Z\,[deg]$', 'interpreter', 'latex', 'fontsize', 17)
+yticks([-pi,-pi/2,0,pi/2,pi])
+yticklabels({'-180','-90','0','90','180'})
 title('Phase', 'fontsize', 20)
