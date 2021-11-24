@@ -38,43 +38,82 @@ R1 = R;                     %resistance for the damping of the loudspeaker
 
 %% FRF of mechanical circuit
 
-num_mech = fft(out.out_velocity.Data);
-den_mech = fft(out.in_force.Data);
-FRF_mech = num_mech./den_mech;
+vel = fft(out.out_velocity.Data);
+force = fft(out.in_force.Data);
+FRF_mech = vel./force;
+FRF_mech = FRF_mech(length(FRF_mech)/2:end);
 
-f_mech = linspace(1,1000,length(out.out_velocity.Data));
+time_step = out.SimulationMetadata.ModelInfo.SolverInfo.FixedStepSize;
+fs = 1/time_step;
+f_mech = linspace(0, fs/4, length(FRF_mech));
 
-figure()
+figure(1)
 subplot(2,1,1)
-plot(f_mech, db(abs(FRF_mech)))
+hold on
+plot(f_mech, db(abs(FRF_mech)), 'linewidth', 2.5)
+hold off
+grid on
+xlabel('Frequency [Hz]', 'fontsize', 17)
+ylabel('$|Z|\,[dB]$', 'interpreter', 'latex', 'fontsize', 17)
+title('Magnitude', 'fontsize', 20)
 subplot(2,1,2)
-plot(f_mech, angle(FRF_mech))
+hold on
+plot(f_mech, angle(FRF_mech), 'linewidth', 2.5)
+hold off
+grid on
+xlabel('Frequency [Hz]', 'fontsize', 17)
+ylabel('$\angle Z\,[deg]$', 'interpreter', 'latex', 'fontsize', 17)
+title('Phase', 'fontsize', 20)
 
 %% FRF of electrical circuit
 
-num_elec = fft(out.out_current.Data);
-den_elec = fft(out.in_voltage.Data);
-FRF_elec = num_elec./den_elec;
+current = fft(out.out_current.Data);
+voltage = fft(out.in_voltage.Data);
+FRF_elec = current./voltage;
+FRF_elec = FRF_elec(length(FRF_elec)/2:end);
 
-f_elec = linspace(1,1000,length(out.out_current.Data));
+time_step = out.SimulationMetadata.ModelInfo.SolverInfo.FixedStepSize;
+fs = 1/time_step;
+f_elec = linspace(0, fs/4, length(FRF_elec));
 
-figure()
+figure(2)
 subplot(2,1,1)
-plot(f_elec, db(abs(FRF_elec)))
+hold on
+plot(f_elec, db(abs(FRF_elec)), 'linewidth', 2.5)
+hold off
+grid on
+xlabel('Frequency [Hz]', 'fontsize', 17)
+ylabel('$|Z|\,[dB]$', 'interpreter', 'latex', 'fontsize', 17)
+title('Magnitude', 'fontsize', 20)
 subplot(2,1,2)
-plot(f_elec, angle(FRF_elec))
+hold on
+plot(f_elec, angle(FRF_elec), 'linewidth', 2.5)
+hold off
+grid on
+xlabel('Frequency [Hz]', 'fontsize', 17)
+ylabel('$\angle Z\,[deg]$', 'interpreter', 'latex', 'fontsize', 17)
+title('Phase', 'fontsize', 20)
 
 
 %% Comparison
 
-figure()
+figure(3)
 subplot(2,1,1)
 hold on
-plot(f_mech, db(abs(FRF_mech)))
-plot(f_elec, db(abs(FRF_elec)))
+plot(f_mech, db(abs(FRF_mech)), 'linewidth', 2.5)
+plot(f_elec, db(abs(FRF_elec)), '--', 'linewidth', 2.5)
 hold off
+grid on
+legend('Mechanical circuit', 'Electrical circuit', 'fontsize', 20)
+xlabel('Frequency [Hz]', 'fontsize', 17)
+ylabel('$|Z|\,[dB]$', 'interpreter', 'latex', 'fontsize', 17)
+title('Magnitude', 'fontsize', 20)
 subplot(2,1,2)
 hold on
-plot(f_mech, angle(FRF_mech))
-plot(f_elec, angle(FRF_elec))
+plot(f_mech, angle(FRF_mech), 'linewidth', 2.5)
+plot(f_elec, angle(FRF_elec), '--', 'linewidth', 2.5)
 hold off
+grid on
+xlabel('Frequency [Hz]', 'fontsize', 17)
+ylabel('$\angle Z\,[deg]$', 'interpreter', 'latex', 'fontsize', 17)
+title('Phase', 'fontsize', 20)
