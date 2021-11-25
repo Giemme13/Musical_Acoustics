@@ -31,7 +31,7 @@ delta_L = 0.85*D/2;         %end correction on one end of the venting pipe [m]
 % diaphragm
 L1 = m;                     %inductor for the mass of the loudspeaker [kg]
 k1 = k;
-C1 = 1/k1;                   %condenser for the equivalent spring of the loudspeaker [s^2/kg]
+C1 = 1/k1;                  %condenser for the equivalent spring of the loudspeaker [s^2/kg]
 R1 = R;                     %resistance for the damping of the loudspeaker [kg/s]
 
 % cavity
@@ -45,7 +45,7 @@ R2 = rho*c*S;               %resistance for the dissipation inside the venting t
 
 %% Admittance computation
 
-omega = linspace(0,20000*2*pi, 100000);
+omega = linspace(0,10000*2*pi, 100000);
 
 %diaphragm
 Zmd = 1i.*omega.*L1;
@@ -65,17 +65,17 @@ Zt = Zmt + Zrt;
 
 Z = Zd + (1./(1./Zcc + 1./Zt));
 Y = 1./Z;
-
+f = omega./(2*pi);
 
 figure(1)
 subplot(2,1,1)
-plot(omega/(2*pi), db(abs(Y)), 'linewidth', 2.5)
+plot(f, db(abs(Y)), 'linewidth', 2.5)
 grid on
 xlabel('Frequency [Hz]', 'fontsize', 17)
 ylabel('$|Y|\,[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 title('Magnitude', 'fontsize', 20)
 subplot(2,1,2)
-plot(omega/(2*pi), angle(Y), 'linewidth', 2.5)
+plot(f, angle(Y), 'linewidth', 2.5)
 grid on
 xlabel('Frequency [Hz]', 'fontsize', 17)
 ylabel('$\angle Z\,[deg]$', 'interpreter', 'latex', 'fontsize', 17)
@@ -144,22 +144,26 @@ title('Phase', 'fontsize', 20)
 figure(4)
 subplot(2,1,1)
 hold on
-plot(f_mech, db(abs(FRF_mech)), 'linewidth', 2)
-plot(f_elec, db(abs(FRF_elec)), '--', 'linewidth', 2)
+plot(f, db(abs(Y)), 'linewidth', 2.5)
+plot(f_mech, db(abs(FRF_mech)), '-.', 'linewidth', 2.5)
+plot(f_elec, db(abs(FRF_elec)), '--', 'linewidth', 2.5)
 hold off
 grid on
-legend('Mechanical circuit', 'Electrical circuit', 'fontsize', 20)
+xlim([0,500])
+legend('Analytical solution', 'Mechanical circuit', 'Electrical circuit', 'fontsize', 20)
 xlabel('Frequency [Hz]', 'fontsize', 17)
-ylabel('$|Z|\,[dB]$', 'interpreter', 'latex', 'fontsize', 17)
+ylabel('$|Y|\,[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 title('Magnitude', 'fontsize', 20)
 subplot(2,1,2)
 hold on
-plot(f_mech, angle(FRF_mech), 'linewidth', 2)
-plot(f_elec, angle(FRF_elec), '--', 'linewidth', 2)
+plot(f, angle(Y), 'linewidth', 2.5)
+plot(f_mech, angle(FRF_mech), '-.', 'linewidth', 2.5)
+plot(f_elec, angle(FRF_elec), '--', 'linewidth', 2.5)
 hold off
 grid on
+xlim([0,500])
 xlabel('Frequency [Hz]', 'fontsize', 17)
-ylabel('$\angle Z\,[deg]$', 'interpreter', 'latex', 'fontsize', 17)
+ylabel('$\angle Y\,[deg]$', 'interpreter', 'latex', 'fontsize', 17)
 yticks([-pi,-pi/2,0,pi/2,pi])
 yticklabels({'-180','-90','0','90','180'})
 title('Phase', 'fontsize', 20)
