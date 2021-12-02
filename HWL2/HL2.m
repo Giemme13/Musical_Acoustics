@@ -33,7 +33,7 @@ Y = 1./Z;
 
 f_axis = omega./(2*pi);
 
-figure()
+figure(1)
 subplot(2,1,1)
 plot(f_axis, db(abs(Y)), 'linewidth', 2.5)
 grid on
@@ -57,6 +57,34 @@ f_res_analytical = (c/(2*pi)) * sqrt(S/(V*l_tot));
 %f_res_analytical = 1/(2*pi*(L*C)^(1/2));
 
 
+%% single resonator comparison (run the simscape and the following section before this one)
+
+figure(2)
+subplot(2,1,1)
+hold on
+plot(f, db(abs(FRF)), 'linewidth', 2)
+plot(f_axis, db(abs(Y)), '--', 'linewidth', 2)
+hold off
+grid on
+legend('simscape', 'analytical')
+xlim([0,3000])
+xlabel('Frequency [Hz]', 'fontsize', 17)
+ylabel('$|Y|\,[dB]$', 'interpreter', 'latex', 'fontsize', 17)
+title('Magnitude', 'fontsize', 20)
+subplot(2,1,2)
+hold on
+plot(f, angle(FRF), 'linewidth', 2)
+plot(f_axis, angle(Y), '--', 'linewidth', 2)
+hold off
+grid on
+xlim([0,3000])
+xlabel('Frequency [Hz]', 'fontsize', 17)
+ylabel('$\angle Y\,[deg]$', 'interpreter', 'latex', 'fontsize', 17)
+yticks([-pi,-pi/2,0,pi/2,pi])
+yticklabels({'-180','-90','0','90','180'})
+title('Phase', 'fontsize', 20)
+
+
 %% A) Transfer function (admittance) in simscape
 
 U = fft(out.U.Data);
@@ -68,9 +96,12 @@ time_step = out.SimulationMetadata.ModelInfo.SolverInfo.FixedStepSize;
 fs = 1/time_step;
 f = linspace(0, fs/2, length(FRF));
 
-figure()
+figure(3)
 subplot(2,1,1)
-plot(f, db(abs(FRF)), 'linewidth', 2.5)
+hold on
+plot(f, db(abs(FRF)), 'linewidth', 1.5)
+hold off
+legend('1x2','2x2','3x2','4x2','5x2')
 grid on
 xlim([0,3000])
 ylim([-140,0])
@@ -78,7 +109,9 @@ xlabel('Frequency [Hz]', 'fontsize', 17)
 ylabel('$|Y|\,[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 title('Magnitude', 'fontsize', 20)
 subplot(2,1,2)
-plot(f, angle(FRF), 'linewidth', 2.5)
+hold on
+plot(f, angle(FRF), 'linewidth', 1.5)
+hold off
 grid on
 xlim([0,3000])
 xlabel('Frequency [Hz]', 'fontsize', 17)
@@ -93,15 +126,15 @@ f_res_simscape = f(locs);
 
 
 
-%% Tree admittance computation as in the article
+%% Balanced tree admittance computation
 
-K = 4;
+K = 5;
 N = 2;
 
 Z = 1i*omega*L + R + 1./(1i*omega*C);
 Zden = zeros(1,length(Z));
 
-for k = 1:K-1
+for k = 1:K
     for n = 1:N
         Zden = Zden + 1./Z;
     end
@@ -111,16 +144,21 @@ end
 
 Ya = 1./Z;
 
-figure()
+figure(4)
 subplot(2,1,1)
-plot(f_axis, db(abs(Ya)), 'linewidth', 2.5)
+hold on
+plot(f_axis, db(abs(Ya)), 'linewidth', 1.5)
+hold off
+legend('1x2','2x2','3x2','4x2','5x2')
 grid on
 xlim([0,3000])
 xlabel('Frequency [Hz]', 'fontsize', 17)
 ylabel('$|Y|\,[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 title('Magnitude', 'fontsize', 20)
 subplot(2,1,2)
-plot(f_axis, angle(Ya), 'linewidth', 2.5)
+hold on
+plot(f_axis, angle(Ya), 'linewidth', 1.5)
+hold off
 grid on
 xlim([0,3000])
 xlabel('Frequency [Hz]', 'fontsize', 17)
@@ -133,16 +171,16 @@ title('Phase', 'fontsize', 20)
 f_res_tree_a = f_axis(locs);
 
 
-%% Tree admittance computation as in the HW
+%% Unbalanced tree admittance computation as in the HW
 
-K = 4;
+K = 3;
 N = 2;
 
 Z1 = 1i*omega*L + R + 1./(1i*omega*C);
 Zden = 1./Z1;
 Zprev = zeros(1,length(Z));
 
-for k = 1:K-1
+for k = 1:K
     for n = 1:N-1
         Zden = Zden + 1./Z1;
     end
@@ -154,16 +192,21 @@ end
 
 Yb = 1./Z;
 
-figure()
+figure(5)
 subplot(2,1,1)
-plot(f_axis, db(abs(Yb)), 'linewidth', 2.5)
+hold on
+plot(f_axis, db(abs(Yb)), 'linewidth', 1.5)
+hold off
+legend('1x2','2x2','3x2','4x2','5x2')
 grid on
 xlim([0,3000])
 xlabel('Frequency [Hz]', 'fontsize', 17)
 ylabel('$|Y|\,[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 title('Magnitude', 'fontsize', 20)
 subplot(2,1,2)
-plot(f_axis, angle(Yb), 'linewidth', 2.5)
+hold on
+plot(f_axis, angle(Yb), 'linewidth', 1.5)
+hold off
 grid on
 xlim([0,3000])
 xlabel('Frequency [Hz]', 'fontsize', 17)
@@ -176,17 +219,17 @@ title('Phase', 'fontsize', 20)
 f_res_tree_b = f_axis(locs);
 
 
-%% comparison
+%% tree comparison (run simscape and the analytical impedances)
 
-figure()
+figure(6)
 subplot(2,1,1)
 hold on
 plot(f, db(abs(FRF)), 'linewidth', 2)
 plot(f_axis, db(abs(Ya)), '--', 'linewidth', 2)
-plot(f_axis, db(abs(Yb)), '--', 'linewidth', 2)
+%plot(f_axis, db(abs(Yb)), '--', 'linewidth', 2)
 hold off
 grid on
-legend('simscape', 'article', 'hw')
+legend('simscape', 'analytical')
 xlim([0,3000])
 xlabel('Frequency [Hz]', 'fontsize', 17)
 ylabel('$|Y|\,[dB]$', 'interpreter', 'latex', 'fontsize', 17)
@@ -195,7 +238,7 @@ subplot(2,1,2)
 hold on
 plot(f, angle(FRF), 'linewidth', 2)
 plot(f_axis, angle(Ya), '--', 'linewidth', 2)
-plot(f_axis, angle(Yb), '--', 'linewidth', 2)
+%plot(f_axis, angle(Yb), '--', 'linewidth', 2)
 hold off
 grid on
 xlim([0,3000])
