@@ -57,35 +57,8 @@ f_res_analytical = (c/(2*pi)) * sqrt(S/(V*l_tot));
 %f_res_analytical = 1/(2*pi*(L*C)^(1/2));
 
 
-%% single resonator comparison (run the simscape and the following section before this one)
-
-figure(2)
-subplot(2,1,1)
-hold on
-plot(f, db(abs(FRF)), 'linewidth', 2)
-plot(f_axis, db(abs(Y)), '--', 'linewidth', 2)
-hold off
-grid on
-legend('simscape', 'analytical')
-xlim([0,3000])
-xlabel('Frequency [Hz]', 'fontsize', 17)
-ylabel('$|Y|\,[dB]$', 'interpreter', 'latex', 'fontsize', 17)
-title('Magnitude', 'fontsize', 20)
-subplot(2,1,2)
-hold on
-plot(f, angle(FRF), 'linewidth', 2)
-plot(f_axis, angle(Y), '--', 'linewidth', 2)
-hold off
-grid on
-xlim([0,3000])
-xlabel('Frequency [Hz]', 'fontsize', 17)
-ylabel('$\angle Y\,[deg]$', 'interpreter', 'latex', 'fontsize', 17)
-yticks([-pi,-pi/2,0,pi/2,pi])
-yticklabels({'-180','-90','0','90','180'})
-title('Phase', 'fontsize', 20)
-
-
-%% A) Transfer function (admittance) in simscape
+%% Transfer function - Simscape
+% takes data from simscape simulation
 
 U = fft(out.U.Data);
 p = fft(out.p.Data);
@@ -101,7 +74,7 @@ subplot(2,1,1)
 hold on
 plot(f, db(abs(FRF)), 'linewidth', 1.5)
 hold off
-legend('1x2','2x2','3x2','4x2','5x2')
+legend('2x1','2x2','2x3')
 grid on
 xlim([0,3000])
 ylim([-140,0])
@@ -127,9 +100,11 @@ f_res_simscape = f(locs);
 
 
 %% Balanced tree admittance computation
+% K = tree levels
+% N = leaves per each subdivision
 
-K = 5;
-N = 2;
+K = 1;
+N = 5;
 
 Z = 1i*omega*L + R + 1./(1i*omega*C);
 Zden = zeros(1,length(Z));
@@ -149,7 +124,7 @@ subplot(2,1,1)
 hold on
 plot(f_axis, db(abs(Ya)), 'linewidth', 1.5)
 hold off
-legend('1x2','2x2','3x2','4x2','5x2')
+legend('1x1','1x2','1x3','1x4','1x5')
 grid on
 xlim([0,3000])
 xlabel('Frequency [Hz]', 'fontsize', 17)
@@ -168,10 +143,12 @@ yticklabels({'-180','-90','0','90','180'})
 title('Phase', 'fontsize', 20)
 
 [pks,locs] = findpeaks(db(abs(Ya)));
-f_res_tree_a = f_axis(locs);
+f_res_tree_balanced = f_axis(locs);
 
 
 %% Unbalanced tree admittance computation as in the HW
+% K = tree levels
+% N = total leaves each level
 
 K = 3;
 N = 2;
@@ -216,17 +193,20 @@ yticklabels({'-180','-90','0','90','180'})
 title('Phase', 'fontsize', 20)
 
 [pks,locs] = findpeaks(db(abs(Yb)));
-f_res_tree_b = f_axis(locs);
+f_res_tree_unbalanced = f_axis(locs);
 
 
-%% tree comparison (run simscape and the analytical impedances)
+%% Tree comparison between simscape and script
+% use this section to compare the results between simscape and the
+% analytical solution for both the single resonator and the trees
 
 figure(6)
 subplot(2,1,1)
 hold on
-plot(f, db(abs(FRF)), 'linewidth', 2)
-plot(f_axis, db(abs(Ya)), '--', 'linewidth', 2)
-%plot(f_axis, db(abs(Yb)), '--', 'linewidth', 2)
+plot(f, db(abs(FRF)), 'linewidth', 2)               %simscape
+plot(f_axis, db(abs(Y)), '--', 'linewidth', 2)      %single resonator
+%plot(f_axis, db(abs(Ya)), '--', 'linewidth', 2)    %balanced tree
+%plot(f_axis, db(abs(Yb)), '--', 'linewidth', 2)    %unbalanced tree
 hold off
 grid on
 legend('simscape', 'analytical')
@@ -236,9 +216,10 @@ ylabel('$|Y|\,[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 title('Magnitude', 'fontsize', 20)
 subplot(2,1,2)
 hold on
-plot(f, angle(FRF), 'linewidth', 2)
-plot(f_axis, angle(Ya), '--', 'linewidth', 2)
-%plot(f_axis, angle(Yb), '--', 'linewidth', 2)
+plot(f, angle(FRF), 'linewidth', 2)                 %simscape
+plot(f_axis, angle(Y), '--', 'linewidth', 2)        %single resonator
+%plot(f_axis, angle(Ya), '--', 'linewidth', 2)      %balanced tree
+%plot(f_axis, angle(Yb), '--', 'linewidth', 2)      %unbalanced tree
 hold off
 grid on
 xlim([0,3000])
