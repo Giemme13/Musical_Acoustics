@@ -14,7 +14,7 @@ rho = 1.2;  %density of the air [kg/m^3]
 %% virtual neck
 
 a = sqrt(S/pi);     %radius of the neck
-dl = 0.85 * a;      %end correction
+dl = 8/(3*pi) * a;  %end correction
 l_tot = l+2*dl;     %length + virtual elongation of the neck
 
 
@@ -31,7 +31,7 @@ omega = linspace(0,10000*2*pi, 100000);
 Z = 1i*omega*L + R + 1./(1i*omega*C);
 Y = 1./Z;
 
-f_axis = omega/(2*pi);
+f_axis = omega./(2*pi);
 
 figure()
 subplot(2,1,1)
@@ -51,6 +51,10 @@ ylabel('$\angle Y\,[deg]$', 'interpreter', 'latex', 'fontsize', 17)
 yticks([-pi,-pi/2,0,pi/2,pi])
 yticklabels({'-180','-90','0','90','180'})
 title('Phase', 'fontsize', 20)
+
+% resonance frequency
+f_res_analytical = (c/(2*pi)) * sqrt(S/(V*l_tot));
+%f_res_analytical = 1/(2*pi*(L*C)^(1/2));
 
 
 %% A) Transfer function (admittance) in simscape
@@ -83,15 +87,10 @@ yticks([-pi,-pi/2,0,pi/2,pi])
 yticklabels({'-180','-90','0','90','180'})
 title('Phase', 'fontsize', 20)
 
-
-%% B) Compute the natural frequency
-
-%from simscape
+% resonance frequency
 [pks, locs] = findpeaks(db(abs(FRF(1:3000))));
-f_0s = f(locs);
+f_res_simscape = f(locs);
 
-%analytically
-f_0a = (c/(2*pi)) * sqrt(S/(V*l_tot));
 
 
 %% Tree admittance computation as in the article
@@ -131,7 +130,7 @@ yticklabels({'-180','-90','0','90','180'})
 title('Phase', 'fontsize', 20)
 
 [pks,locs] = findpeaks(db(abs(Ya)));
-f_res_a = f_axis(locs);
+f_res_tree_a = f_axis(locs);
 
 
 %% Tree admittance computation as in the HW
@@ -174,7 +173,7 @@ yticklabels({'-180','-90','0','90','180'})
 title('Phase', 'fontsize', 20)
 
 [pks,locs] = findpeaks(db(abs(Yb)));
-f_res_b = f_axis(locs);
+f_res_tree_b = f_axis(locs);
 
 
 %% comparison
