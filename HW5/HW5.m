@@ -62,17 +62,17 @@ end
 % the previous cycle is doesn't work for m = 10
 for i = 1:max_nm
     for j = 1:max_nm
-        Phi_nm{i,j}(abs(Phi_nm{j,j})<toll) = 0;
+        Phi_nm{i,j}(abs(Phi_nm{i,j})<toll) = 0;
     end
 end
 %%
-surf(x_grid,y_grid,Phi_nm{1,3}) % plot a mode shape
+surf(x_grid,y_grid,Phi_nm{3,1}+Phi_nm{1,3}) % plot a mode shape
 
 
 %% Input impedance computation of single point as a function of frequency
 
 %considered point
-x_index = 60;
+x_index = 70;
 y_index = 50;
 
 %damping matrix with reyleigh damping
@@ -161,7 +161,7 @@ zticklabels({'-180','-90','0','90','180'})
 title('Phase', 'fontsize', 20)
 
 %% pcolor plot
-note = 5;  % 1==F2, 2==A4, 3==C5, 4==E5, 5==G5
+note = 1;  % 1==F2, 2==A4, 3==C5, 4==E5, 5==G5
 Z = Z_notes{note};
 
 figure()
@@ -190,7 +190,8 @@ for i = 1:5
     y_notes_index(i) = find(abs(y_axis-y_notes_coord(i))==min(abs(y_axis-y_notes_coord(i))));
 end
 
-%%
+%% Points on board plots
+
 for i = 1:length(notes)
     figure()
     hold on
@@ -203,7 +204,7 @@ for i = 1:length(notes)
     colorbar
 end
 
-%%
+%% Bridge plot
 
 figure()
 hold on
@@ -222,15 +223,60 @@ hold off
 xlim([-0.1, 1.5])
 ylim([-0.1, 1.1])
 
-%%
-%epsilon_max=(0.5)./(2.*pi.*notes);
-detuned_notes=zeros(1,5);
-mu=0.0108;
+%% Eigenfrequencies of coupled system
 
-L=[0.482, 0.392, 0.35, 0.3, 0.232];
-c=2*pi.*L;
-T=mu.*(c.^2);
-Z_string=sqrt(T.*mu);
+epsilon = 10^(-4);
+%epsilon_min = -3./(2*pi.*notes(2));
+%epsilon = linspace(epsilon_min,epsilon_max,1000);
+%detuned_notes = zeros(1,5);
+mu = 0.0108;
 
+L = y_notes_coord;
+c = 2*pi*L;
+T = mu*(c.^2);
+Z_string = sqrt(T*mu);
 
+Z_B = zeros(1,length(notes));
+for i = 1:length(notes)
+    Z_B(i) = Z_notes{i}(x_notes_index(i), y_notes_index(i));
+end
+
+Y_B = 1./Z_B;
+
+csi = (Y_B*1i.*Z_string)/pi;
+mi = sqrt(epsilon^2 + csi.^2);
+
+a1 = csi+epsilon + mi;
+a2 = csi+epsilon - mi;
+
+detune1 = real(a1);
+detune2 = real(a2);
+
+damping1 = imag(a1);
+damping2 = imag(a2);
+
+%% leave this alone
+figure()
+hold on
+plot(epsilon, detune1)
+plot(epsilon, detune2)
+yline(0)
+xline(0)
+hold off
+
+%% Decay time
+numb = 1; 
+
+t = linspace(0,10,10000);
+
+F_0 = 1;
+omega_0 = 2*pi*notes(numb);
+csin = csi(numb);
+Z_0 = Z_string(numb);
+mi = mi(numb);
+
+V_B = (2.*pi*F_0.*csin)./(mi.*Z_0).*exp(1i.*(epsilon+csin).*omega_0.*t) ...
+    .*(mi*cos(mi*omega_0.*t)+1i*csin.*sin(mi*omega_0.*t)).*exp(1i*omega_0.*t);
+
+plot(t,db(real(V_B)))
 
