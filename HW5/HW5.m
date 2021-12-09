@@ -222,6 +222,15 @@ hold off
 xlim([-0.1, 1.5])
 ylim([-0.1, 1.1])
 
+%%
+%epsilon_max=(0.5)./(2.*pi.*notes);
+detuned_notes=zeros(1,5);
+mu=0.0108;
+
+L=[0.482, 0.392, 0.35, 0.3, 0.232];
+c=2*pi.*L;
+T=mu.*(c.^2);
+Z_string=sqrt(T.*mu);
 
 
 
