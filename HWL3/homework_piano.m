@@ -28,6 +28,7 @@ f=65.4;
 
 % Boundary          
 
+
 % String parameters
 b1=0.5; %air damping coeff.
 b2=6.25e-9; %internal friction of the string
@@ -64,7 +65,6 @@ a5=(-v)/(1+b1*T);
 Mh=4.9e-3; %mass of the hammer
 bh=1e-4; %fluid damping coeff 
 K=4e8; %stiffness of the hammer
-p=2.3; %stiffness exponent
 V_h0=2.5; %initial velocity of hammer
 
 % Hammer contact window definition
@@ -74,9 +74,22 @@ V_h0=2.5; %initial velocity of hammer
 
 % Bridge boundary coefficients
 bound_b=1000;
+bR1=(2-2*mu*lambda^2-2*lambda^2)/(1+b1*T+bound_b*lambda);
+bR2=(4*mu*lambda^2+2*lambda^2)/(1+b1*T+bound_b*lambda);
+bR3=(-2*mu*lambda^2)/(1+b1*T+bound_b*lambda);
+bR4=(-1-b1*T+bound_b*lambda)/(1+b1*T+bound_b*lambda);
+bR5=(T^2/u)/(1+b1*T+bound_b*lambda);
+
 % Left hand (hinged string end) boundary coefficients
 bound_l=1e20;
+bL1=(2-2*mu*lambda^2-2*lambda^2)/(1+b1*T+bound_l*lambda);
+bL2=(4*mu*lambda^2+2*lambda^2)/(1+b1*T+bound_l*lambda);
+bL3=(-2*mu*lambda^2)/(1+b1*T+bound_l*lambda);
+bL4=(-1-b1*T+bound_l*lambda)/(1+b1*T+bound_l*lambda);
+bL5=(T^2/u)/(1+b1*T+bound_l*lambda);
+
 % Hammer felt parameters
+p=2.3; %stiffness exponent
 
 %% Computation of the FD scheme
 % Initialization
