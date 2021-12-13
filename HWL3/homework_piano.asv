@@ -73,7 +73,7 @@ V_h0=2.5; %initial velocity of hammer
 % Hammer contact window definition
 d1=2/(1+bh*T/(2*Mh));
 d2=(-1+bh*T/(2*Mh))/(1+bh*T/(2*Mh));
-dF=(-(T^2)/Mh)/(1+bh*T/(2*Mh));
+dF=/(1+bh*T/(2*Mh));
 
 %PDE Coefficients:
 
