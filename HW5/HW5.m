@@ -66,7 +66,7 @@ for i = 1:max_nm
     end
 end
 %%
-surf(x_grid,y_grid,Phi_nm{3,1}+Phi_nm{1,3}) % plot a mode shape
+surf(x_grid,y_grid,Phi_nm{2,2}) % plot a mode shape
 
 
 %% Input impedance computation of single point as a function of frequency
@@ -140,7 +140,7 @@ for ii = 1:length(notes)
     Z_notes{ii} = 1./Y;
 end
 %% surf plot
-note = 1;  % 1==F2, 2==A4, 3==C5, 4==E5, 5==G5
+note = 3;  % 1==F2, 2==A4, 3==C5, 4==E5, 5==G5
 Z = Z_notes{note};
 
 figure()
@@ -173,12 +173,16 @@ colorbar
 
 
 %% Bridge design
+mu = 0.0108;
+T = 900;
+c = sqrt(T/mu);
+y_notes_coord = c./(2.*notes);
 
-x_F4 = 0.71; y_F4 = 0.482;
-x_A4 = 0.77; y_A4 = 0.392;
-x_C5 = 0.81; y_C5 = 0.350;
-x_E5 = 0.86; y_E5 = 0.300;
-x_G5 = 0.93; y_G5 = 0.232;
+x_F4 = 0.71; y_F4 = 0.434;%0.482;
+x_A4 = 0.77; y_A4 = 0.328;%0.392;
+x_C5 = 0.81; y_C5 = 0.293;%0.350;
+x_E5 = 0.86; y_E5 = 0.219;%0.300;
+x_G5 = 0.93; y_G5 = 0.184;%0.232;
 x_notes_coord = [x_F4, x_A4, x_C5, x_E5, x_G5];
 y_notes_coord = [y_F4, y_A4, y_C5, y_E5, y_G5];
 
@@ -196,7 +200,7 @@ for i = 1:length(notes)
     figure()
     hold on
     pcolor(x_grid,y_grid, db(abs(Z_notes{i})))
-    plot(x_axis(x_notes_index(i)), y_axis(y_notes_index(i)), 'ro', 'linewidth', 2)
+    plot(x_axis(x_notes_index(i)), y_axis(y_notes_index(i)), 'ro', 'linewidth', 5)
     hold off
     xlabel('$x\,[m]$', 'interpreter', 'latex', 'fontsize', 17)
     ylabel('$y\,[m]$', 'interpreter', 'latex', 'fontsize', 17)
@@ -267,16 +271,20 @@ hold off
 %% Decay time
 numb = 1; 
 
-t = linspace(0,10,10000);
+t = linspace(0,200,10000);
 
 F_0 = 1;
 omega_0 = 2*pi*notes(numb);
 csin = csi(numb);
 Z_0 = Z_string(numb);
-mi = mi(numb);
+min = mi(numb);
 
-V_B = (2.*pi*F_0.*csin)./(mi.*Z_0).*exp(1i.*(epsilon+csin).*omega_0.*t) ...
-    .*(mi*cos(mi*omega_0.*t)+1i*csin.*sin(mi*omega_0.*t)).*exp(1i*omega_0.*t);
+V_B = (2.*pi*F_0.*csin)./(min.*Z_0).*exp(1i.*(epsilon+csin).*omega_0.*t) ...
+    .*(min*cos(min*omega_0.*t)+1i*csin.*sin(min*omega_0.*t)).*exp(1i*omega_0.*t);
 
-plot(t,db(real(V_B)))
+figure()
+plot(t,db(abs(V_B)), 'linewidth', 2)
+xlabel('$t\;[s]$', 'interpreter', 'latex', 'fontsize', 17)
+ylabel('$V_B\;[dB]$', 'interpreter', 'latex', 'fontsize', 17)
+grid on
 
