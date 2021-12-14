@@ -20,7 +20,7 @@ clc
 
 % Temporal sampling parameters
 duration = 8;       %signal is 8 second long [s]
-fs = 44100/4;         %sampling frequency [Hz]
+fs = 44100;         %sampling frequency [Hz]
 t_axis = linspace(0,duration,duration*fs);
 T = 1/fs;           %time resolution
 
@@ -134,10 +134,11 @@ G(m0-delta:m0+delta) = G(m0-delta:m0+delta) + g';
 eta = zeros(length(t_axis),1);
 eta(2) = V_h0*T;
 
+
 % Computation loop
 for n = 2:(size(Y, 1) -1)      %iteration over time
     
-    FH(n) = K*abs(eta(n)-Y(n,m0))^p;                    %force of the hammer
+    FH(n) = K*abs(eta(n)-Y(n,m0))^p;        %force of the hammer
     if eta(n)<Y(n,m0)          %the hammer leaves the string
         FH(n) = 0;
     end
@@ -169,6 +170,20 @@ for n = 2:(size(Y, 1) -1)      %iteration over time
 end
 %% Plot the displacement in time
 
+figure(1);
+i = 1;
+while 1
+    plot(x_axis, Y(i,:));
+    xlabel('$x\,[m]$', 'interpreter', 'latex', 'fontsize', 17);
+    xlim([0,L]);
+    ylabel('$Displacement\,[m]$', 'interpreter', 'latex', 'fontsize', 17);
+    ylim([-3e-4,3e-4]);
+    pause(T);
+    if T*i > 8
+        break
+    end
+    i = i+1;
+end
 %% Plot the synthesized signal play it and save it on the disk
 
 % Play the sound
