@@ -19,127 +19,152 @@ clc
 % as C2.
 
 % Temporal sampling parameters
-duration = 8;       %signal is 8 second long
-fs = 4*44100;       %time resolution
+duration = 8;       %signal is 8 second long [s]
+fs = 44100/4;         %sampling frequency [Hz]
 t_axis = linspace(0,duration,duration*fs);
+T = 1/fs;           %time resolution
 
 % Fundamental note
-f = 65.4;           % [Hz]
+f0 = 65.4;          %[Hz]
 
 % Boundary          
-
+bound_b = 1000;     %normalized bridge impedance [Ohm/kg m^2 s]
+bound_l = 1e20;     %normalized impedance of the left end [Ohm/kg m^2 s]
 
 % String parameters
-m_s=35e-3;%mass 
-k=7.5e-6; %stiffness
-l=1.92; %length
-Te=750; %tension
-u=m_s/l; %linear density
-c=sqrt(Te/u); %speed stiffness, 
+L = 1.92;           %length [m]
+mass = 35e-3;       %mass [kg]
+Te = 750;           %tension [N]
+b1 = 0.5;           %air damping coefficient [Hz]
+b2 = 6.25e-9;       %string internal friction coefficient [s]
+k = 7.5e-6;         %stiffness [kg/s^2]
+rho = mass/L;       %linear density [kg/m]
+c = sqrt(Te/rho);   %speed stiffness [m/s]
 
 % Spatial sampling parameters
-w=0.2; %width of window g
-gamma=T/(2*f);
-Nmax=sqrt((-1+sqrt(1+16*k*gamma^2))/(8*k));
-X=floor(Nmax); %spacial resolution
-x_axis = linspace(0, l, X);
-deltax = l/X;
-g_samples = floor(w*deltax);
-if mod(g_samples,2) ~= 0
-    g_sample = g_samples +1;
-end
+gamma = fs/(2*f0);
+Nmax = sqrt((-1+sqrt(1+16*k*gamma^2))/(8*k)); %maximum number of spatial samples
 
 % Aliasing condition
 % Number of maximum spatial steps
+prompt = 'Please, choose a number of spatial samples between 5 and ';
+N = 0;
+while N<5 || N>Nmax
+        N = input(strcat([prompt, num2str(floor(Nmax)), ':\n']));
+end
 
 % Integer values
 % Spatial sampling
-
+N = floor(N);                   %spacial samples
+x_axis = linspace(0, L, N);
+X = 1/N;                        %spacial resolution
 
 
 % FD parameters
-b1=0.5; %air damping coeff.
-b2=6.25e-9; %internal friction of the string
-bh=1e-4; %fluid damping coeff 
-mu=k^2/(c^2*X^2);
-v=2*b2*T/(X^2);
-lambda=c*T/X;
-a1=(-lambda^2*mu)/(1+b1*T);
-a2=(lambda^2+4*mu*lambda^2+v)/(1+b1*T);
-a3=(2-2*lambda^2-6*mu*lambda^2-2*v)/(1+b1*T);
-a4=(-1+b1*T+2*v)/(1+b1*T);
-a5=(-v)/(1+b1*T);
-aF=0.12;
+mu = k^2/(c^2*X^2);
+nu = 2*b2*T/(X^2);
+lambda = c*T/X;
 
 % Hammer parameters
-Mh=4.9e-3; %mass of the hammer
-K=4e8; %stiffness of the hammer
-V_h0=2.5; %initial velocity of hammer
-p=2.3; %stiffness exponent
-
+Mh = 4.9e-3;    %mass of the hammer [kg]
+p = 2.3;        %stiffness exponent [\]
+bh = 1e-4;      %fluid damping coeff [Hz]
+K = 4e8;        %stiffness of the hammer [kg/s^2]
+a = 0.12;       %position of the striking point in percentage
+V_h0 = 2.5;     %initial velocity of hammer [m/s]
 
 % Hammer contact window definition
-d1=2/(1+bh*T/(2*Mh));
-d2=(-1+bh*T/(2*Mh))/(1+bh*T/(2*Mh));
-dF=(-(T^2)/Mh)/(1+bh*T/(2*Mh));
+w = 0.2;                        %width of window g
+g_samples = floor(w*N);         %length of the hammer's window g(x,x0)
+if mod(g_samples,2) ~= 0        %we want an odd number of samples
+    g_sample = g_samples +1;    %to center the window on x0
+end
+delta = (g_samples-1)/2;       %half length of the window
+g = hann(g_samples);            %window definition
+
 
 %PDE Coefficients:
 
+% string coefficients
+aden = (1+b1*T);
+a1 = (-lambda^2*mu) / aden;
+a2 = (lambda^2+4*mu*lambda^2+nu) / aden;
+a3 = (2-2*lambda^2-6*mu*lambda^2-2*nu) / aden;
+a4 = (-1+b1*T+2*nu) / aden;
+a5 = (-nu) / aden;
+aF = (T^2/rho) / aden;
+
 % Bridge boundary coefficients
-bound_b=1000;
-bR1=(2-2*mu*lambda^2-2*lambda^2)/(1+b1*T+bound_b*lambda);
-bR2=(4*mu*lambda^2+2*lambda^2)/(1+b1*T+bound_b*lambda);
-bR3=(-2*mu*lambda^2)/(1+b1*T+bound_b*lambda);
-bR4=(-1-b1*T+bound_b*lambda)/(1+b1*T+bound_b*lambda);
-bRF=(T^2/u)/(1+b1*T+bound_b*lambda);
+bRden = (1+b1*T+bound_b*lambda);
+bR1 = (2-2*mu*lambda^2-2*lambda^2) / bRden;
+bR2 = (4*mu*lambda^2+2*lambda^2) / bRden;
+bR3 = (-2*mu*lambda^2) / bRden;
+bR4 = (-1+b1*T+bound_b*lambda) / bRden;
+bRF = (T^2/rho) / bRden;
 
 % Left hand (hinged string end) boundary coefficients
-bound_l=1e20;
-bL1=(2-2*mu*lambda^2-2*lambda^2)/(1+b1*T+bound_l*lambda);
-bL2=(4*mu*lambda^2+2*lambda^2)/(1+b1*T+bound_l*lambda);
-bL3=(-2*mu*lambda^2)/(1+b1*T+bound_l*lambda);
-bL4=(-1-b1*T+bound_l*lambda)/(1+b1*T+bound_l*lambda);
-bLF=(T^2/u)/(1+b1*T+bound_l*lambda);
+bLden = (1+b1*T+bound_l*lambda);
+bL1 = (2-2*mu*lambda^2-2*lambda^2) / bLden;
+bL2 = (4*mu*lambda^2+2*lambda^2) / bLden;
+bL3 = (-2*mu*lambda^2) / bLden;
+bL4 = (-1+b1*T+bound_l*lambda) / bLden;
+bLF = (T^2/rho) / bLden;
 
 % Hammer felt parameters
+dden = (1+bh*T/(2*Mh));
+d1 = 2 / dden;
+d2 = (-1+bh*T/(2*Mh)) / dden;
+dF = (-(T^2)/Mh) / dden;
 
 
 %% Computation of the FD scheme
 % Initialization
-Y = zeros(length(t_axis), length(x_axis));
-F = ones(length(t_axis), length(x_axis));
-%m0 = ;
-delta = g_samples -1;
-g = hann(g_samples);
-G = zeros(length(t_axis));
-G(m0-delta, m0+delta) = G(m0-delta, m0+delta) + g;
 
+%displacement of the string
+Y = zeros(length(t_axis), length(x_axis));
+%force excerted by the hammer
+F = zeros(length(t_axis), length(x_axis));
+FH = zeros(length(t_axis),1);
+%application of the window to the force axis
+x0 = a*L;   %striking position [m]
+m0 = find(abs(x_axis-x0)==min(abs(x_axis-x0)));
+G = zeros(1,length(x_axis));
+G(m0-delta:m0+delta) = G(m0-delta:m0+delta) + g';
+%displacement of the hammer
+eta = zeros(length(t_axis),1);
+eta(2) = V_h0*T;
 
 % Computation loop
-for n = 2:(size(Y, 1) -1)      %itero l'asse temporale
-    for m = 1:size(F, 2)
-        F(n,:) = FH(n).*G;
+for n = 2:(size(Y, 1) -1)      %iteration over time
+    
+    FH(n) = K*abs(eta(n)-Y(n,m0))^p;                    %force of the hammer
+    if eta(n)<Y(n,m0)          %the hammer leaves the string
+        FH(n) = 0;
     end
+    eta(n+1) = d1*eta(n) + d2*eta(n-1) + dF*FH(n);      %displacement of the hammer
+    
+    for m = 1:size(F, 2)       %iteration over space for the force
+        F(n,:) = FH(n)*G;
+    end
+    
     clear m
-    for m = 1:size(Y, 2)       %itero l'asse spaziale
+    for m = 1:size(Y, 2)       %iteration over space for the displacement
         if m==1
             Y(n+1,m) = bL1*Y(n,m) + bL2*Y(n,m+1) + ...
                 bL3*Y(n,m+2) + bL4*Y(n-1,m) + bLF*F(n,m);
-        end
-        if m==2
+        elseif m==2
             Y(n+1,m) = a1*(Y(n,m+2)-Y(n,m)+2*Y(n,m-1)) + a2*(Y(n,m+1)+Y(n,m-1)) + ...
                 a3*Y(n,m) + a4*Y(n-1,m) + a5*(Y(n-1,m+1)+Y(n-1,m-1)) + aF*F(n,m);
-        end
-        if m==(size(Y, 2))
+        elseif m==(size(Y, 2))
             Y(n+1,m) = bR1*Y(n,m) + bR2*Y(n,m-1) + ...
                 bR3*Y(n,m-2) + bR4*Y(n-1,m) + bRF*F(n,m);
-        end
-        if m==(size(Y, 2) -1)
-            Y(n+1,m) = a1*(2*Y(n,m+1)-Y(n,m)+2*Y(n,m-2)) + a2*(Y(n,m+1)+Y(n,m-1)) + ...
+        elseif m==(size(Y, 2) -1)
+            Y(n+1,m) = a1*(2*Y(n,m+1)-Y(n,m)+Y(n,m-2)) + a2*(Y(n,m+1)+Y(n,m-1)) + ...
+                a3*Y(n,m) + a4*Y(n-1,m) + a5*(Y(n-1,m+1)+Y(n-1,m-1)) + aF*F(n,m);
+        else
+            Y(n+1,m) = a1*(Y(n,m+2)+Y(n,m-2)) + a2*(Y(n,m+1)+Y(n,m-1)) + ...
                 a3*Y(n,m) + a4*Y(n-1,m) + a5*(Y(n-1,m+1)+Y(n-1,m-1)) + aF*F(n,m);
         end
-        Y(n+1,m) = a1*(Y(n,m+2)+Y(n,m-2)) + a2*(Y(n,m+1)+Y(n,m-1)) + ...
-            a3*Y(n,m) + a4*Y(n-1,m) + a5*(Y(n-1,m+1)+Y(n-1,m-1)) + aF*F(n,m);
     end
 end
 %% Plot the displacement in time
