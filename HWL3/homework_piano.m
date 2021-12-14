@@ -20,7 +20,7 @@ clc
 
 % Temporal sampling parameters
 duration = 8;       %signal is 8 second long [s]
-fs = 44100;         %sampling frequency [Hz]
+fs = 4*44100;         %sampling frequency [Hz]
 t_axis = linspace(0,duration,duration*fs);
 T = 1/fs;           %time resolution
 
@@ -47,15 +47,15 @@ Nmax = sqrt((-1+sqrt(1+16*k*gamma^2))/(8*k)); %maximum number of spatial samples
 
 % Aliasing condition
 % Number of maximum spatial steps
-prompt = 'Please, choose a number of spatial samples between 5 and ';
-N = 0;
-while N<5 || N>Nmax
-        N = input(strcat([prompt, num2str(floor(Nmax)), ':\n']));
-end
+% prompt = 'Please, choose a number of spatial samples between 5 and ';
+% N = 0;
+% while N<5 || N>Nmax
+%         N = input(strcat([prompt, num2str(floor(Nmax)), ':\n']));
+% end
 
 % Integer values
 % Spatial sampling
-N = floor(N);                   %spacial samples
+N = floor(Nmax);                   %spacial samples
 x_axis = linspace(0, L, N);
 X = 1/N;                        %spacial resolution
 
@@ -107,7 +107,7 @@ bLden = (1+b1*T+bound_l*lambda);
 bL1 = (2-2*mu*lambda^2-2*lambda^2) / bLden;
 bL2 = (4*mu*lambda^2+2*lambda^2) / bLden;
 bL3 = (-2*mu*lambda^2) / bLden;
-bL4 = (-1+b1*T+bound_l*lambda) / bLden;
+bL4 = (-1+b1*T+bound_b*lambda) / bLden;
 bLF = (T^2/rho) / bLden;
 
 % Hammer felt parameters
@@ -138,15 +138,16 @@ eta(2) = V_h0*T;
 % Computation loop
 for n = 2:(size(Y, 1) -1)      %iteration over time
     
-    FH(n) = K*abs(eta(n)-Y(n,m0))^p;        %force of the hammer
-    if eta(n)<Y(n,m0)          %the hammer leaves the string
+            %force of the hammer
+    if eta(n)>Y(n,m0)          %the hammer leaves the string
+       FH(n) = K*abs(eta(n)-Y(n,m0))^p;
+    else
         FH(n) = 0;
     end
     eta(n+1) = d1*eta(n) + d2*eta(n-1) + dF*FH(n);      %displacement of the hammer
     
-    for m = 1:size(F, 2)       %iteration over space for the force
-        F(n,:) = FH(n)*G;
-    end
+    
+    F(n,:) = FH(n)*G;
     
     clear m
     for m = 1:size(Y, 2)       %iteration over space for the displacement
@@ -178,11 +179,12 @@ while 1
     xlim([0,L]);
     ylabel('$Displacement\,[m]$', 'interpreter', 'latex', 'fontsize', 17);
     ylim([-3e-4,3e-4]);
+    title(strcat(['Time: ', num2str(i*T), ' s']), 'fontsize', 20)
     pause(T);
     if T*i > 8
         break
     end
-    i = i+1;
+    i = i+10;
 end
 %% Plot the synthesized signal play it and save it on the disk
 
