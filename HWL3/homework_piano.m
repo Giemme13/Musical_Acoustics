@@ -20,7 +20,7 @@ clc
 
 % Temporal sampling parameters
 duration = 8;       %signal is 8 second long [s]
-fs = 4*44100;         %sampling frequency [Hz]
+fs = 4*44100;       %sampling frequency [Hz]
 t_axis = linspace(0,duration,duration*fs);
 T = 1/fs;           %time resolution
 
@@ -57,7 +57,7 @@ Nmax = sqrt((-1+sqrt(1+16*k*gamma^2))/(8*k)); %maximum number of spatial samples
 % Spatial sampling
 N = floor(Nmax);                   %spacial samples
 x_axis = linspace(0, L, N);
-X = 1/N;                        %spacial resolution
+X = L/N;                        %spacial resolution
 
 
 % FD parameters
@@ -75,11 +75,10 @@ V_h0 = 2.5;     %initial velocity of hammer [m/s]
 
 % Hammer contact window definition
 w = 0.2;                        %width of window g
-g_samples = floor(w*N);         %length of the hammer's window g(x,x0)
+g_samples = floor(w/X);         %length of the hammer's window g(x,x0)
 if mod(g_samples,2) ~= 0        %we want an odd number of samples
     g_sample = g_samples +1;    %to center the window on x0
 end
-delta = (g_samples-1)/2;       %half length of the window
 g = hann(g_samples);            %window definition
 
 
@@ -120,54 +119,60 @@ dF = (-(T^2)/Mh) / dden;
 %% Computation of the FD scheme
 % Initialization
 
-%displacement of the string
-Y = zeros(length(t_axis), length(x_axis));
-%force excerted by the hammer
-F = zeros(length(t_axis), length(x_axis));
-FH = zeros(length(t_axis),1);
 %application of the window to the force axis
-x0 = a*L;   %striking position [m]
+x0 = a*L;           %striking position [m]
 m0 = find(abs(x_axis-x0)==min(abs(x_axis-x0)));
 G = zeros(1,length(x_axis));
+delta = (g_samples-1)/2;           %half length of the window
 G(m0-delta:m0+delta) = G(m0-delta:m0+delta) + g';
+%displacement of the string
+Y = zeros(length(t_axis), length(x_axis));
 %displacement of the hammer
 eta = zeros(length(t_axis),1);
 eta(2) = V_h0*T;
+%force excerted by the hammer
+F = zeros(length(t_axis), length(x_axis));
+FH = zeros(length(t_axis),1);
+FH(2) = K*abs(eta(2)-Y(2,m0))^p;
 
 
 % Computation loop
-for n = 2:(size(Y, 1) -1)      %iteration over time
+for n = 2:(size(Y, 1) -1)       %iteration over time    
     
-            %force of the hammer
-    if eta(n)>Y(n,m0)          %the hammer leaves the string
-       FH(n) = K*abs(eta(n)-Y(n,m0))^p;
-    else
-        FH(n) = 0;
-    end
     eta(n+1) = d1*eta(n) + d2*eta(n-1) + dF*FH(n);      %displacement of the hammer
-    
     
     F(n,:) = FH(n)*G;
     
-    clear m
-    for m = 1:size(Y, 2)       %iteration over space for the displacement
-        if m==1
-            Y(n+1,m) = bL1*Y(n,m) + bL2*Y(n,m+1) + ...
-                bL3*Y(n,m+2) + bL4*Y(n-1,m) + bLF*F(n,m);
-        elseif m==2
-            Y(n+1,m) = a1*(Y(n,m+2)-Y(n,m)+2*Y(n,m-1)) + a2*(Y(n,m+1)+Y(n,m-1)) + ...
+    % m = 1
+    Y(n+1,1) = bL1*Y(n,1) + bL2*Y(n,2) + ...
+            bL3*Y(n,3) + bL4*Y(n-1,1) + bLF*F(n,1);
+    
+    % m = 2
+    Y(n+1,2) = a1*(Y(n,4)-Y(n,2)+2*Y(n,1)) + a2*(Y(n,3)+Y(n,1)) + ...
+            a3*Y(n,2) + a4*Y(n-1,2) + a5*(Y(n-1,3)+Y(n-1,1)) + aF*F(n,2);
+    
+    % m = M
+    Y(n+1,end) = bR1*Y(n,end) + bR2*Y(n,end-1) + ...
+            bR3*Y(n,end-2) + bR4*Y(n-1,end) + bRF*F(n,end);
+    
+    % m = M-1
+    Y(n+1,end-1) = a1*(2*Y(n,end)-Y(n,end-1)+Y(n,end-3)) + a2*(Y(n,end)+Y(n,end-2)) + ...
+            a3*Y(n,end-1) + a4*Y(n-1,end-1) + a5*(Y(n-1,end)+Y(n-1,end-2)) + aF*F(n,end-1);
+    
+    
+    for m = 3:size(Y, 2)-2       %iteration over space for the displacement
+            
+        Y(n+1,m) = a1*(Y(n,m+2)+Y(n,m-2)) + a2*(Y(n,m+1)+Y(n,m-1)) + ...
                 a3*Y(n,m) + a4*Y(n-1,m) + a5*(Y(n-1,m+1)+Y(n-1,m-1)) + aF*F(n,m);
-        elseif m==(size(Y, 2))
-            Y(n+1,m) = bR1*Y(n,m) + bR2*Y(n,m-1) + ...
-                bR3*Y(n,m-2) + bR4*Y(n-1,m) + bRF*F(n,m);
-        elseif m==(size(Y, 2) -1)
-            Y(n+1,m) = a1*(2*Y(n,m+1)-Y(n,m)+Y(n,m-2)) + a2*(Y(n,m+1)+Y(n,m-1)) + ...
-                a3*Y(n,m) + a4*Y(n-1,m) + a5*(Y(n-1,m+1)+Y(n-1,m-1)) + aF*F(n,m);
-        else
-            Y(n+1,m) = a1*(Y(n,m+2)+Y(n,m-2)) + a2*(Y(n,m+1)+Y(n,m-1)) + ...
-                a3*Y(n,m) + a4*Y(n-1,m) + a5*(Y(n-1,m+1)+Y(n-1,m-1)) + aF*F(n,m);
-        end
+        
     end
+    
+    if eta(n+1)<Y(n+1,m0)        %the hammer leaves the string
+        FH(n+1) = 0;     
+    else
+        FH(n+1) = K*abs(eta(n+1)-Y(n+1,m0))^p;        %force of the hammer
+    end
+    
 end
 %% Plot the displacement in time
 
@@ -178,19 +183,28 @@ while 1
     xlabel('$x\,[m]$', 'interpreter', 'latex', 'fontsize', 17);
     xlim([0,L]);
     ylabel('$Displacement\,[m]$', 'interpreter', 'latex', 'fontsize', 17);
-    ylim([-3e-4,3e-4]);
+    ylim([-6e-4,6e-4]);
     title(strcat(['Time: ', num2str(i*T), ' s']), 'fontsize', 20)
     pause(T);
     if T*i > 8
         break
     end
-    i = i+10;
+    i = i+300;
 end
 %% Plot the synthesized signal play it and save it on the disk
 
+avg_samples = 12;
+left_extreme = length(x_axis)-m0-avg_samples/2;
+right_extreme = length(x_axis)-m0+avg_samples/2;
+
+soundWave = Y(:,left_extreme:right_extreme)./max(Y(:,left_extreme:right_extreme));
+soundWave = mean(soundWave(:,:),2);
+soundWave = soundWave;
+
+plot(t_axis, soundWave)
+
 % Play the sound
-
-
+sound(soundWave, fs)
 
 % Save on disk
 
