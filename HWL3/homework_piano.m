@@ -125,11 +125,14 @@ m0 = find(abs(x_axis-x0)==min(abs(x_axis-x0)));
 G = zeros(1,length(x_axis));
 delta = (g_samples-1)/2;           %half length of the window
 G(m0-delta:m0+delta) = G(m0-delta:m0+delta) + g';
+
 %displacement of the string
 Y = zeros(length(t_axis), length(x_axis));
+
 %displacement of the hammer
 eta = zeros(length(t_axis),1);
 eta(2) = V_h0*T;
+
 %force excerted by the hammer
 F = zeros(length(t_axis), length(x_axis));
 FH = zeros(length(t_axis),1);
@@ -141,7 +144,7 @@ for n = 2:(size(Y, 1) -1)       %iteration over time
     
     eta(n+1) = d1*eta(n) + d2*eta(n-1) + dF*FH(n);      %displacement of the hammer
     
-    F(n,:) = FH(n)*G;
+    F(n,:) = FH(n)*G;           %distributed force along the string
     
     % m = 1
     Y(n+1,1) = bL1*Y(n,1) + bL2*Y(n,2) + ...
@@ -189,7 +192,7 @@ while 1
     if T*i > 8
         break
     end
-    i = i+300;
+    i = i+100;
 end
 %% Plot the synthesized signal play it and save it on the disk
 
@@ -199,7 +202,6 @@ right_extreme = length(x_axis)-m0+avg_samples/2;
 
 soundWave = Y(:,left_extreme:right_extreme)./max(Y(:,left_extreme:right_extreme));
 soundWave = mean(soundWave(:,:),2);
-soundWave = soundWave;
 
 plot(t_axis, soundWave)
 
@@ -207,7 +209,7 @@ plot(t_axis, soundWave)
 sound(soundWave, fs)
 
 % Save on disk
-
+audiowrite('100799610_MarinPasin-10805035_DeBortoli_piano.wav', soundWave, fs)
 
 
 
