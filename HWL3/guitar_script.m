@@ -1,3 +1,5 @@
+%% Setup
+
 clear;
 close all;
 clc;
@@ -6,7 +8,6 @@ addpath('Functions')
 simulink_folder = './';       % Simulink projects folder
 addpath(simulink_folder);
 
-%% Setup
 fs = 44100;                         % Sampling frequency
 signalLen = 5;                      % Signal length
 t = [0:1/fs:signalLen-1/fs];        % Time axis
@@ -45,12 +46,11 @@ audiowrite(fileName1, soundWave1, fs);
 
 %% Plate+string simulation
 
-
 % run simulink simulation
 sim('guitar_plate_string'); 
 
 % Resampling
-I2 = resample(I, t);
+I2 = resample(I1, t);
 
 % Plot in time
 figure(4)
