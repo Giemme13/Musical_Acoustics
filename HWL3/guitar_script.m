@@ -42,7 +42,7 @@ sound(soundWave1, fs);                           % Play the sound
 
 fileName1 = 'guitar_plate.wav';     % Audio file path
 disp('Save file on disk...')                    % Save on disk
-audiowrite(fileName1, soundWave1, fs);
+%audiowrite(fileName1, soundWave1, fs);
 
 %% Plate+string simulation
 
@@ -50,7 +50,7 @@ audiowrite(fileName1, soundWave1, fs);
 sim('guitar_plate_string'); 
 
 % Resampling
-I2 = resample(I1, t);
+I2 = resample(I, t);
 
 % Plot in time
 figure(4)
