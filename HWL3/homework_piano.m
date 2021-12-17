@@ -21,8 +21,9 @@ clc
 % Temporal sampling parameters
 duration = 8;       %signal is 8 second long [s]
 fs = 4*44100;       %sampling frequency [Hz]
-t_axis = linspace(0,duration,duration*fs);
 T = 1/fs;           %time resolution
+t_axis = linspace(0,duration,duration*fs);
+N = length(t_axis); 
 
 % Fundamental note
 f0 = 65.4;          %[Hz]
@@ -33,12 +34,12 @@ bound_l = 1e20;     %normalized impedance of the left end [Ohm/kg m^2 s]
 
 % String parameters
 L = 1.92;           %length [m]
-mass = 35e-3;       %mass [kg]
+M_S = 35e-3;        %mass [kg]
 Te = 750;           %tension [N]
 b1 = 0.5;           %air damping coefficient [Hz]
 b2 = 6.25e-9;       %string internal friction coefficient [s]
 k = 7.5e-6;         %stiffness [kg/s^2]
-rho = mass/L;       %linear density [kg/m]
+rho = M_S/L;        %linear density [kg/m]
 c = sqrt(Te/rho);   %speed stiffness [m/s]
 
 % Spatial sampling parameters
@@ -55,9 +56,10 @@ Nmax = sqrt((-1+sqrt(1+16*k*gamma^2))/(8*k)); %maximum number of spatial samples
 
 % Integer values
 % Spatial sampling
-N = floor(Nmax);                   %spacial samples
-x_axis = linspace(0, L, N);
-X = L/N;                        %spacial resolution
+Nmax = floor(Nmax);                   %spacial samples
+X = L/Nmax;                        %spacial resolution
+x_axis = linspace(0, L, Nmax);
+M = length(x_axis);
 
 
 % FD parameters
@@ -76,7 +78,7 @@ V_h0 = 2.5;     %initial velocity of hammer [m/s]
 % Hammer contact window definition
 w = 0.2;                        %width of window g
 g_samples = floor(w/X);         %length of the hammer's window g(x,x0)
-if mod(g_samples,2) ~= 0        %we want an odd number of samples
+if mod(g_samples,2) == 0        %we want an odd number of samples
     g_sample = g_samples +1;    %to center the window on x0
 end
 g = hann(g_samples);            %window definition
@@ -122,27 +124,25 @@ dF = (-(T^2)/Mh) / dden;
 %application of the window to the force axis
 x0 = a*L;           %striking position [m]
 m0 = find(abs(x_axis-x0)==min(abs(x_axis-x0)));
-G = zeros(1,length(x_axis));
+G = zeros(1,M);
 delta = (g_samples-1)/2;           %half length of the window
 G(m0-delta:m0+delta) = G(m0-delta:m0+delta) + g';
 
 %displacement of the string
-Y = zeros(length(t_axis), length(x_axis));
+Y = zeros(N,M);
 
 %displacement of the hammer
-eta = zeros(length(t_axis),1);
+eta = zeros(N,1);
 eta(2) = V_h0*T;
 
 %force excerted by the hammer
-F = zeros(length(t_axis), length(x_axis));
-FH = zeros(length(t_axis),1);
+F = zeros(N,M);
+FH = zeros(N,1);
 FH(2) = K*abs(eta(2)-Y(2,m0))^p;
 
 
 % Computation loop
-for n = 2:(size(Y, 1) -1)       %iteration over time    
-    
-    eta(n+1) = d1*eta(n) + d2*eta(n-1) + dF*FH(n);      %displacement of the hammer
+for n = 2:(N-1)       %iteration over time    
     
     F(n,:) = FH(n)*G;           %distributed force along the string
     
@@ -163,12 +163,14 @@ for n = 2:(size(Y, 1) -1)       %iteration over time
             a3*Y(n,end-1) + a4*Y(n-1,end-1) + a5*(Y(n-1,end)+Y(n-1,end-2)) + aF*F(n,end-1);
     
     
-    for m = 3:size(Y, 2)-2       %iteration over space for the displacement
+    for m = 3:M-2       %iteration over space for the displacement
             
         Y(n+1,m) = a1*(Y(n,m+2)+Y(n,m-2)) + a2*(Y(n,m+1)+Y(n,m-1)) + ...
                 a3*Y(n,m) + a4*Y(n-1,m) + a5*(Y(n-1,m+1)+Y(n-1,m-1)) + aF*F(n,m);
         
     end
+    
+    eta(n+1) = d1*eta(n) + d2*eta(n-1) + dF*FH(n);      %displacement of the hammer
     
     if eta(n+1)<Y(n+1,m0)        %the hammer leaves the string
         FH(n+1) = 0;     
@@ -180,35 +182,32 @@ end
 %% Plot the displacement in time
 
 figure(1);
-i = 1;
-while 1
-    plot(x_axis, Y(i,:));
+
+for i = 1:50:N
+    plot(x_axis, Y(i,:), 'linewidth', 2);
     xlabel('$x\,[m]$', 'interpreter', 'latex', 'fontsize', 17);
     xlim([0,L]);
     ylabel('$Displacement\,[m]$', 'interpreter', 'latex', 'fontsize', 17);
-    ylim([-6e-4,6e-4]);
+    ylim([-5e-4,5e-4]);
     title(strcat(['Time: ', num2str(i*T), ' s']), 'fontsize', 20)
     pause(T);
-    if T*i > 8
-        break
-    end
-    i = i+100;
 end
+
 %% Plot the synthesized signal play it and save it on the disk
 
 avg_samples = 12;
-left_extreme = length(x_axis)-m0-avg_samples/2;
-right_extreme = length(x_axis)-m0+avg_samples/2;
+left_extreme = M-m0-avg_samples/2;
+right_extreme = M-m0+avg_samples/2;
 
 soundWave = Y(:,left_extreme:right_extreme)./max(Y(:,left_extreme:right_extreme));
 soundWave = mean(soundWave(:,:),2);
 
 plot(t_axis, soundWave)
 
-% Play the sound
+%% Play the sound
 sound(soundWave, fs)
 
-% Save on disk
+%% Save on disk
 audiowrite('100799610_MarinPasin-10805035_DeBortoli_piano.wav', soundWave, fs)
 
 
