@@ -2,17 +2,17 @@ clear all;
 close all;
 clc
 
-%% DATA
+%% CONSTANTS
 
 c = 343;                %speed of sound in air [m/s]
 rho = 1.225;            %air density [kg/m^3]
+nu = 1.5e-5;            %kinematic viscosity [m^2/s]
+
+%% 1) RESONATOR
+
 alpha = 0.75;           %cone semiangle [deg]
 alpha = deg2rad(alpha); %cone semiangle [rad]
 L0 = 0.45;              %length of the whole instrument (and resonator) [m]
-Lchannel = 0.02;        %length of the flue channel [m]
-Lmouth = 0.004;         %distance between channel exit and labium [m]
-
-%% 1) RESONATOR
 
 %% a) Find head and foot diameters
 
@@ -220,5 +220,41 @@ ylim([-0.25,0.25])
 
 %% 2) FLUE CHANNEL AND MOUTH
 
+centr = 2000;           %spectrum centroid [Hz]
+omega_c = 2*pi*centr;
+Delta_P = 62;           %pressure difference between channel and mouth [Pa]
+
 %% d) Channel thickness, jet velocity, Reynolds number
 
+Uj = sqrt(2*Delta_P/rho);       %central velocity of the jet [m/s]
+h = 0.3*Uj/centr;               %thickness of the jet
+Re = Uj*h/nu;                   %Reynolds number
+Str = centr*h/Uj;               %Strouhal number
+
+if Re < 2000
+    disp('The jet remains laminar for a short distance after the flue channel exit')
+elseif Re > 3000
+    disp('The jet becomes turbolent immediately downstream the flue exit')
+else
+    disp('The regime is transient between laminar and turbolent')
+end
+
+%% e) Thickness of the boundary layer at the channel exit
+
+Lchannel = 0.02;            %length of the flue channel [m]
+
+bl = sqrt(nu*Lchannel/Uj);  %boundary layer thickness at channel exit [m]
+
+%% f) Magnitude of oscillations of the jet at the labium
+%metodo 1 -> non utilizzo l'spl dato, ma è un jet recep experimental method
+W = 0.004;              %distance between channel exit and labium [m]
+df = omega_c*bl/Uj;     %dimensionless frequency
+alpha_i = 0.07;         %obtained from diagram inspection
+Vac = 1e-1*Uj;          %acoustic field velocity, typical value
+
+delta_j = Lchannel/sqrt(Re);
+delta_ac = sqrt(2*nu/omega_c);
+
+eta = (Vac*h*delta_j)/(Uj*delta_ac)*exp(alpha_i*W);
+
+%metodo 2 -> dall'spl ricavo Delta_P
