@@ -1,14 +1,16 @@
 clear all;
 close all;
-clc;
+clc
 
-%% Data
+%% DATA
 
 c = 343;                %speed of sound in air [m/s]
 rho = 1.225;            %air density [kg/m^3]
 alpha = 0.75;           %cone semiangle [deg]
 alpha = deg2rad(alpha); %cone semiangle [rad]
-L0 = 0.45;              %length of the resonator [m]
+L0 = 0.45;              %length of the whole instrument (and resonator) [m]
+Lchannel = 0.02;        %length of the flue channel [m]
+Lmouth = 0.004;         %distance between channel exit and labium [m]
 
 %% 1) RESONATOR
 
@@ -17,53 +19,66 @@ L0 = 0.45;              %length of the resonator [m]
 F4 = 349.23;            %frequency with closed holes [Hz]
 omega_F4 = 2*pi*F4;     %frequency [rad/s]
 k_F4 = omega_F4/c;      %wavenumber [m^-1]
-lambda_F4 = 2*pi/k_F4;  %wavelength [m]
 
 %write the input impedance as a function of x1
-%geometry: moving on x-axis -> vertex v=0, x1>v, x2>x1
-x_1 = linspace(-10, 10, 10000);
-x_2 = x_1+L0;
-theta_1 = (1/k_F4)*atan(k_F4*x_1);
-theta_2 = (1/k_F4)*atan(k_F4*x_2);
-r_1 = x_1*tan(-alpha);
-r_2 = x_2*tan(-alpha);
+%geometry: vertex on x=0, x_1>0, x_2>x_1, L>0
+%narrow end
+r_1 = linspace(0,0.05,10000);
+x_1 = r_1/tan(alpha);
+theta_1 = atan(k_F4*x_1)/k_F4;
 S_1 = pi*r_1.^2;
+%wide end
+x_2 = x_1 + L0;
+r_2 = x_2*tan(alpha);
+theta_2 = atan(k_F4*x_2)/k_F4;
 S_2 = pi*r_2.^2;
 
-d_L = 0.6 * r_2;        %end correction
-L_ = L0+d_L;
+dL_ = 0.61*r_1;            %end correction
+L_ = L0 + dL_;
 
-Z_IN = (1i*rho*c./S_2).*(sin(k_F4*L_).*sin(k_F4*theta_2))./sin(k_F4*(L_-theta_2));
+%Input impedance as in Fletcher's book, page 451
+Delta_L = 0.04;                 %typical value for alto recorder
+M_ = (rho*Delta_L)./S_2;        %inertance of the mouth window
+
+Z_IN = ((1i*rho*c)./S_2) .* ((sin(k_F4*L_).*sin(k_F4*theta_1))./sin(k_F4*(L_+theta_1))) + 1i*omega_F4*M_;
+
 
 %% Plot the impedance
 
+[min, locs] = findpeaks(-db(abs(Z_IN)));
+
 figure()
 subplot(2,1,1)
-plot(x_1, db(abs(Z_IN)), 'linewidth', 1.5);
+hold on
+plot(r_1, db(abs(Z_IN)), 'linewidth', 1.5);
+plot(r_1(locs), -min, 'or', 'linewidth', 2);
 grid on
 xlabel('$x_1\;[m]$', 'interpreter', 'latex', 'fontsize', 17)
 ylabel('$|Z_{IN}|\;[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 subplot(2,1,2)
-plot(x_1, angle(Z_IN), 'linewidth', 1.5);
+hold on
+plot(r_1, angle(Z_IN), 'linewidth', 1.5);
+xline(r_1(locs), '--r', 'linewidth', 2)
+hold off
 grid on
 xlabel('$x_1\;[m]$', 'interpreter', 'latex', 'fontsize', 17)
 ylabel('$\angle Z_{IN}\;[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 
 %% By inspection
 
-[min, locs] = findpeaks(db(abs(Z_IN)));
 loc = locs(1);
 
+r1 = r_1(loc);
+r2 = r_2(loc);
+S1 = S_1(loc);
+S2 = S_2(loc);
 x1 = x_1(loc);
 x2 = x_2(loc);
 theta1 = theta_1(loc);
 theta2 = theta_2(loc);
-S1 = S_1(loc);
-S2 = S_2(loc);
-dL = abs(d_L(loc));
+dL = dL_(loc);
 L = L_(loc);
-r1 = r_1(loc);
-r2 = r_2(loc);
+M = M_(loc);
 
 d1 = 2*r1;                  %diameter of the resonator at the head [m]
 d2 = 2*r2;                  %diameter of the resonator at the foot [m]
@@ -75,15 +90,21 @@ freq = linspace(1,2000,10000);
 omega = 2*pi*freq;
 k = omega/c;
 
-Z_IN = (1i*rho*c/S2) * (sin(k*L).*sin(k*theta2))./sin(k*(L-theta2));
+theta_1 = (1./k).*atan(k*x1);
+theta_2 = (1./k).*atan(k*x2);
+M_ = (rho*tan(k*Delta_L))./(k*S2); 
+
+Z_IN = ((1i*rho*c)./S2) .* ((sin(k*L).*sin(k.*theta_1))./sin(k.*(L+theta_1))) + 1i*omega*M;
 
 figure()
 subplot(2,1,1)
 plot(freq, db(abs(Z_IN)), 'linewidth', 1.5)
+grid on
 xlabel('$x_1\;[m]$', 'interpreter', 'latex', 'fontsize', 17)
 ylabel('$|Z_{IN}|\;[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 subplot(2,1,2)
-plot(freq, angle(Z_IN), 'linewidth', 1.5);
+plot(freq, angle(Z_IN), 'linewidth', 1.5)
+grid on
 xlabel('$x_1\;[m]$', 'interpreter', 'latex', 'fontsize', 17)
 ylabel('$\angle Z_{IN}\;[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 
@@ -101,7 +122,8 @@ delta = D + dL^2./(D+2*dL);     %difference between equivalent resonators
 
 L_G4 = L - delta;               %length of a the pipe if the hole is opened
 
-Z_IN = (1i*rho*c./S2).*(sin(k_G4*L_G4).*sin(k_G4*theta2))./sin(k_G4*(L_G4-theta2));
+%Input impedance as a function of L_G4 -> delta -> D
+Z_IN = (1i*rho*c./S2).*(sin(k_G4*L_G4).*sin(k_G4*theta1))./sin(k_G4*(L_G4+theta1)) + 1i*omega_G4*M;
 
 %% Plot the impedance
 
@@ -117,7 +139,7 @@ ylabel('$\angle Z_{IN}\;[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 
 %% By inspection
 
-[min, locs] = findpeaks(db(abs(Z_IN)));
+[min, locs] = findpeaks(-db(abs(Z_IN)));
 loc = locs(1);
 D_G4 = D(loc);                  %distance of the hole from the foot
 x_G4 = L0 - D_G4;               %distance of the hole from the head
@@ -138,7 +160,7 @@ delta = D + (dL_1)^2./(D+2*dL_1); %difference between equivalent resonators
 
 L_A4 = L - delta_G4 - delta;   %length of a the pipe if the two holes are opened
 
-Z_IN = (1i*rho*c./S2).*(sin(k_A4*L_A4).*sin(k_A4*theta2))./sin(k_A4*(L_A4-theta2));
+Z_IN = (1i*rho*c./S2).*(sin(k_A4*L_A4).*sin(k_A4*theta1))./sin(k_A4*(L_A4+theta1)) + 1i*omega_G4*M;
 
 %% Plot the impedance
 
@@ -154,7 +176,7 @@ ylabel('$\angle Z_{IN}\;[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 
 %% By inspection
 
-[min, locs] = findpeaks(db(abs(Z_IN)));
+[min, locs] = findpeaks(-db(abs(Z_IN)));
 loc = locs(1);
 D_2_prime = D(loc);            %distance between holes
 D_A4 = D_2_prime + D_G4;        %distance of the hole from the foot
@@ -164,31 +186,39 @@ dL_2 = D_2_prime + dL_1 - delta_A4;  %end correction of the equivalent resonator
 
 
 %% Plot the flute
-%we already have the diameters at head and foot -> d1, d2
-r_head = d1/2; r_foot = d2/2;
+%we already have the diameters at head and foot, let's rotate the flute
+r_head = r2; r_foot = r1;
 %let's place the input at coord x=0
-x1 = 0;
-x2 = L0;
-%the last hole is positioned at x_G4 and has section (pi*r2^2)
-x_lh_right = x_G4+r2;
-x_lh_left = x_G4-r2;
-r_lh_right = (x2-x_lh_right)*tan(alpha)+r2;
-r_lh_left = (x2-x_lh_left)*tan(alpha)+r2;
+x_head = 0;
+x_foot = L0;
+%the last hole is positioned at x_G4 and has section (pi*r_foot^2)
+x_lh_right = x_G4+r_foot;
+x_lh_left = x_G4-r_foot;
+r_lh_right = (x_foot-x_lh_right)*tan(alpha)+r_foot;
+r_lh_left = (x_foot-x_lh_left)*tan(alpha)+r_foot;
 %the second to last hole is positioned at x_A4 and has section (pi*r2^2)
-x_slh_right = x_A4+r2;
-x_slh_left = x_A4-r2;
-r_slh_right = (x2-x_slh_right)*tan(alpha)+r2;
-r_slh_left = (x2-x_slh_left)*tan(alpha)+r2;
+x_slh_right = x_A4+r_foot;
+x_slh_left = x_A4-r_foot;
+r_slh_right = (x_foot-x_slh_right)*tan(alpha)+r_foot;
+r_slh_left = (x_foot-x_slh_left)*tan(alpha)+r_foot;
 
 figure()
 hold on
 yline(0, '-.')
-%line([0,L0], [r1,r2], 'color', 'k')
-line([0,x_slh_left], [r1,r_slh_left], 'linewidth', 1.5)
+%line([x_head,x_foot], [r_head,r_foot], 'color', 'k') %for check
+line([x_head,x_slh_left], [r_head,r_slh_left], 'linewidth', 1.5)
 line([x_slh_right,x_lh_left], [r_slh_right,r_lh_left], 'linewidth', 1.5)
-line([x_lh_right,L0], [r_lh_right,r2], 'linewidth', 1.5)
-line([0,L0], [-r1,-r2], 'linewidth', 1.5)
+line([x_lh_right,x_foot], [r_lh_right,r_foot], 'linewidth', 1.5)
+line([x_head,x_foot], [-r_head,-r_foot], 'linewidth', 1.5)
+xline(x_G4, '-.')
+xline(x_A4, '-.')
 hold off
 grid on
-xlim([0,L0])
-ylim([-L0/3,L0/3])
+xlim([-0.025,0.475])
+ylim([-0.25,0.25])
+
+
+%% 2) FLUE CHANNEL AND MOUTH
+
+%% d) Channel thickness, jet velocity, Reynolds number
+
