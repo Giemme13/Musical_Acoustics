@@ -110,6 +110,7 @@ ylabel('$\angle Z_{IN}\;[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 
 
 %% b) Position of the last finger hole
+%approssimo il cono ad un cilindro
 
 G4 = 392;               %frequency with last hole opened [Hz]
 omega_G4 = 2*pi*G4;     %frequency [rad/s]
@@ -229,7 +230,6 @@ Delta_P = 62;           %pressure difference between channel and mouth [Pa]
 Uj = sqrt(2*Delta_P/rho);       %central velocity of the jet [m/s]
 h = 0.3*Uj/centr;               %thickness of the jet
 Re = Uj*h/nu;                   %Reynolds number
-Str = centr*h/Uj;               %Strouhal number
 
 if Re < 2000
     disp('The jet remains laminar for a short distance after the flue channel exit')
@@ -246,15 +246,27 @@ Lchannel = 0.02;            %length of the flue channel [m]
 bl = sqrt(nu*Lchannel/Uj);  %boundary layer thickness at channel exit [m]
 
 %% f) Magnitude of oscillations of the jet at the labium
-%metodo 1 -> non utilizzo l'spl dato, ma è un jet recep experimental method
+
 W = 0.004;              %distance between channel exit and labium [m]
-df = omega_c*bl/Uj;     %dimensionless frequency
-alpha_i = 0.07;         %obtained from diagram inspection
-Vac = 1e-1*Uj;          %acoustic field velocity, typical value
+SPL = 50;               %sound pressure level at the flue channel exit [dB]
+
+f = F4;                 %frequency impressed on the jet by the resonator
+omega = 2*pi*F4;
+k = omega/c;
+Str = f*h/Uj;
+
+M = rho*0.04/S2;
+Z_m = 1i*omega*M;
+theta1 = atan(k*x1)/k;
+Z_IN = (1i*rho*c/S2) * (sin(k*L)*sin(k*theta1))/sin(k*(L+theta1)) + Z_m;
+
+Delta_P = 20e-6*10^(SPL/20);    %pressure source at the flue channel exit
+Vac = Delta_P/abs(Z_IN);        %acoustic field velocity at the labium
+
+alpha_i = 0.4/h;                %obtained from diagram inspection
 
 delta_j = Lchannel/sqrt(Re);
-delta_ac = sqrt(2*nu/omega_c);
+delta_ac = sqrt(2*nu/omega);
 
-eta = (Vac*h*delta_j)/(Uj*delta_ac)*exp(alpha_i*W);
+eta = abs((Vac*h*delta_j)/(Uj*delta_ac)*exp(alpha_i*W));
 
-%metodo 2 -> dall'spl ricavo Delta_P
