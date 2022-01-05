@@ -52,8 +52,9 @@ subplot(2,1,1)
 hold on
 plot(r_1, db(abs(Z_IN)), 'linewidth', 1.5);
 plot(r_1(locs), -min, 'or', 'linewidth', 2);
+hold off
 grid on
-xlabel('$x_1\;[m]$', 'interpreter', 'latex', 'fontsize', 17)
+xlabel('$r_1\;[m]$', 'interpreter', 'latex', 'fontsize', 17)
 ylabel('$|Z_{IN}|\;[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 subplot(2,1,2)
 hold on
@@ -61,7 +62,7 @@ plot(r_1, angle(Z_IN), 'linewidth', 1.5);
 xline(r_1(locs), '--r', 'linewidth', 2)
 hold off
 grid on
-xlabel('$x_1\;[m]$', 'interpreter', 'latex', 'fontsize', 17)
+xlabel('$r_1\;[m]$', 'interpreter', 'latex', 'fontsize', 17)
 ylabel('$\angle Z_{IN}\;[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 
 %% By inspection
@@ -100,12 +101,12 @@ figure()
 subplot(2,1,1)
 plot(freq, db(abs(Z_IN)), 'linewidth', 1.5)
 grid on
-xlabel('$x_1\;[m]$', 'interpreter', 'latex', 'fontsize', 17)
+xlabel('Frequency [Hz]', 'fontsize', 17)
 ylabel('$|Z_{IN}|\;[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 subplot(2,1,2)
 plot(freq, angle(Z_IN), 'linewidth', 1.5)
 grid on
-xlabel('$x_1\;[m]$', 'interpreter', 'latex', 'fontsize', 17)
+xlabel('Frequency [Hz]', 'fontsize', 17)
 ylabel('$\angle Z_{IN}\;[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 
 
@@ -127,20 +128,28 @@ L_G4 = L - delta;               %length of a the pipe if the hole is opened
 Z_IN = (1i*rho*c./S2).*(sin(k_G4*L_G4).*sin(k_G4*theta1))./sin(k_G4*(L_G4+theta1)) + 1i*omega_G4*M;
 
 %% Plot the impedance
+[min, locs] = findpeaks(-db(abs(Z_IN)));
 
 figure()
 subplot(2,1,1)
+hold on
 plot(D, db(abs(Z_IN)), 'linewidth', 1.5);
-xlabel('$x_1\;[m]$', 'interpreter', 'latex', 'fontsize', 17)
+plot(D(locs), -min, 'or', 'linewidth', 2);
+hold off
+grid on
+xlabel('$D_1\;[m]$', 'interpreter', 'latex', 'fontsize', 17)
 ylabel('$|Z_{IN}|\;[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 subplot(2,1,2)
+hold on
 plot(D, angle(Z_IN), 'linewidth', 1.5);
-xlabel('$x_1\;[m]$', 'interpreter', 'latex', 'fontsize', 17)
+xline(D(locs), '--r', 'linewidth', 2)
+hold off
+grid on
+xlabel('$D_1\;[m]$', 'interpreter', 'latex', 'fontsize', 17)
 ylabel('$\angle Z_{IN}\;[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 
 %% By inspection
 
-[min, locs] = findpeaks(-db(abs(Z_IN)));
 loc = locs(1);
 D_G4 = D(loc);                  %distance of the hole from the foot
 x_G4 = L0 - D_G4;               %distance of the hole from the head
@@ -164,20 +173,28 @@ L_A4 = L - delta_G4 - delta;   %length of a the pipe if the two holes are opened
 Z_IN = (1i*rho*c./S2).*(sin(k_A4*L_A4).*sin(k_A4*theta1))./sin(k_A4*(L_A4+theta1)) + 1i*omega_G4*M;
 
 %% Plot the impedance
+[min, locs] = findpeaks(-db(abs(Z_IN)));
 
 figure()
 subplot(2,1,1)
+hold on
 plot(D, db(abs(Z_IN)), 'linewidth', 1.5);
-xlabel('$x_1\;[m]$', 'interpreter', 'latex', 'fontsize', 17)
+plot(D(locs), -min, 'or', 'linewidth', 2);
+hold off
+grid on
+xlabel("$D_2'\;[m]$", 'interpreter', 'latex', 'fontsize', 17)
 ylabel('$|Z_{IN}|\;[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 subplot(2,1,2)
+hold on
 plot(D, angle(Z_IN), 'linewidth', 1.5);
-xlabel('$x_1\;[m]$', 'interpreter', 'latex', 'fontsize', 17)
+xline(D(locs), '--r', 'linewidth', 2)
+hold off
+grid on
+xlabel("$D_2'\;[m]$", 'interpreter', 'latex', 'fontsize', 17)
 ylabel('$\angle Z_{IN}\;[dB]$', 'interpreter', 'latex', 'fontsize', 17)
 
 %% By inspection
 
-[min, locs] = findpeaks(-db(abs(Z_IN)));
 loc = locs(1);
 D_2_prime = D(loc);            %distance between holes
 D_A4 = D_2_prime + D_G4;        %distance of the hole from the foot
@@ -216,7 +233,7 @@ xline(x_A4, '-.')
 hold off
 grid on
 xlim([-0.025,0.475])
-ylim([-0.25,0.25])
+ylim([-0.10,0.10])
 
 
 %% 2) FLUE CHANNEL AND MOUTH
@@ -253,7 +270,7 @@ SPL = 50;               %sound pressure level at the flue channel exit [dB]
 f = F4;                 %frequency impressed on the jet by the resonator
 omega = 2*pi*F4;
 k = omega/c;
-Str = f*h/Uj;
+Str = f*W/Uj;
 
 M = rho*0.04/S2;
 Z_m = 1i*omega*M;
@@ -263,10 +280,11 @@ Z_IN = (1i*rho*c/S2) * (sin(k*L)*sin(k*theta1))/sin(k*(L+theta1)) + Z_m;
 Delta_P = 20e-6*10^(SPL/20);    %pressure source at the flue channel exit
 Vac = Delta_P/abs(Z_IN);        %acoustic field velocity at the labium
 
-alpha_i = 0.4/h;                %obtained from diagram inspection
-
 delta_j = Lchannel/sqrt(Re);
 delta_ac = sqrt(2*nu/omega);
+
+dimensionless_frequency = omega*delta_j/Uj;
+alpha_i = 0.045/delta_j;                %obtained from diagram inspection
 
 eta = abs((Vac*h*delta_j)/(Uj*delta_ac)*exp(alpha_i*W));
 
