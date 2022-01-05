@@ -17,38 +17,35 @@ clc
 %% First reflection estimation using autocorrelation
 % Collecting autocorrelations and plotting them in order to analyze
 % reflections. Try different takes and input signals
-addpath('Functions');
 
-nMic = 1;% Number of microphones
-typeOfSignal = 'sweep/';% Noise or sweep
-dir = ['./recordings/' typeOfSignal];      % Recordings directory
-fileName=strcat(dir, '1.wav');
+nMic = % Number of microphones
+typeOfSignal = % Noise or sweep
+dir =       % Recordings directory
+
 speed_of_sound = 343.8; % [m]/[s]
 
-%% Plot the signal autocorrelatio
+%% Plot the signal autocorrelation
+figure;
+t = tiledlayout('flow');
 
-% Load the signal
-[x, Fs]=audioread(fileName);
-% Time length
-time_length=length(x)/Fs;
-% Time axis
-t=1:length(x);
-% Auto correlation
-xc=xcorr(x);
-%Half of the autocorrelation
-xc=xc((length(xc)/2):end);
-    
-%% Plot the autocorrelation
-xlimit=length(t)/32;
-figure(1)
-plot(t, xc);
-title(['Mic: ', num2str(n)]);
-axis([0 xlimit -30 50]);    % Limit the axis
-xlabel('Time (sec)');
+for n = 1:nMic
+    % Load the signal
+       % Time length
+    % Time axis
+    % Auto correlation
+    Half of the autocorrelation
+    % Plot the autocorrelation
+    nexttile
+    plot(t, xc);
+    title(['Mic: ', num2str(n)]);
+    axis([0 0.02 -1 1]);    % Limit the axis
+    xlabel('Time (sec)');
+end
+
 %% MIC TO REFLECTORS DISTANCE COMPUTATION
 % Put here the difference between first reflection 
-%delay = %[s]
+delay = %[s]
 
-%distance = ;%[m]
+distance = ;%[m]
 
-%fprintf(sprintf('Average distance between mic and first reflection %f m\n', distance));
+fprintf(sprintf('Average distance between mic and first reflection %f m\n', distance));
