@@ -27,18 +27,18 @@ labels = cell(1,24);
 step = 15;                      % one measure every 15 degrees
 deg = zeros(1,24);
 for i = 1:24
-   deg(i)=step*(i-1);
-   labels{:,i} = strcat(num2str(deg(i)), '°');
+    deg(i)=step*(i-1);
+    labels{:,i} = strcat(num2str(deg(i)), '°');
 end
 
 %% Load the signals and compute the energy
 
 for i = 1:24
-   fileName = strcat(dir, num2str(i), '.wav');  % i-th file name
-   [x, Fs] = audioread(fileName);               % read i-th audio
-   for j = 1:length(x)
-       signalEnergy(i) = signalEnergy(i)+(abs(x(j)))^2; % compute energy for i-th signal
-   end    
+    fileName = strcat(dir, num2str(i), '.wav');  % i-th file name
+    [x, Fs] = audioread(fileName);               % read i-th audio
+    for j = 1:length(x)
+        signalEnergy(i) = signalEnergy(i)+(abs(x(j)))^2; % compute energy for i-th signal
+    end    
 end
 %% Plot the results
 

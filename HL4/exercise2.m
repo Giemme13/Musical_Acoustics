@@ -23,49 +23,71 @@ addpath('Functions');
 nMic = 1;                                  % Number of microphones
 typeOfSignal = 'sweep/';                   % Noise or sweep
 dir = ['./recordings/' typeOfSignal];      % Recordings directory
-fileName = strcat(dir, '1.wav');
+
 speed_of_sound = 343.8;                    % [m]/[s]
 
 %% Plot the signal autocorrelation
 
-% Load the signal
-[x, Fs] = audioread(fileName);
-% Time length
-time_length = length(x)/Fs;
-% Time axis
-t = linspace(0,time_length,length(x))';
-% Auto correlation
-[xc, lags] = xcorr(x, 'normalized');
-% Half of the autocorrelation
-xc = xc(round((length(xc)/2)):end);
-lags = lags(round((length(lags)/2)):end);
+signals = cell(1,24);               %stores signals
+time_axis = cell(1,24);             %stores time axis of each signal
+autocorrelations = cell(1,24);      %stores signals' autocorrelation
+plot_just = 6;                      %plots diagrams of just one signal
 
-% Plot 
-figure(1)
-subplot(2,1,1)
-plot(t, x)
-xlabel('Time [s]', 'fontsize', 20)
-title('Original signal', 'fontsize', 20)
-subplot(2,1,2)
-plot(t, xc);
-xlabel('Time [s]', 'fontsize', 20)
-title('Autocorrelation', 'fontsize', 20)
-sgtitle(['Mic: ', num2str(nMic)], 'fontsize', 20)
+for i = 1:24
+    % Load the signal
+    fileName = strcat(dir, num2str(i), '.wav');  % i-th file name
+    [x, Fs] = audioread(fileName);               % read i-th audio
+    signals{1,i} = x;
+    % Time length
+    time_length = length(x)/Fs;
+    % Time axis
+    t = linspace(0,time_length,length(x))';
+    time_axis{1,i} = t;
+    % Auto correlation
+    xc = xcorr(x, 'normalized');
+    % Half of the autocorrelation
+    xc = xc(round((length(xc)/2)):end);
+    autocorrelations{1,i} = xc;
+    if plot_just == i
+        % Plot 
+        figure(1)
+        subplot(2,1,1)
+        plot(t, x)
+        xlabel('Time [s]', 'fontsize', 20)
+        title('Original signal', 'fontsize', 20)
+        subplot(2,1,2)
+        plot(t, xc);
+        xlabel('Time [s]', 'fontsize', 20)
+        title('Autocorrelation', 'fontsize', 20)
+        sgtitle(['Mic: ', num2str(nMic)], 'fontsize', 20)
+    end
+end
 
 
 %% MIC TO REFLECTORS DISTANCE COMPUTATION
 % Put here the difference between first reflection
-index_reflex = find(abs(t-0.1)==min(abs(t-0.1)));
-xc_reflex = xc(1:index_reflex);
-t_reflex = t(1:index_reflex);
-figure()
-plot(t_reflex,xc_reflex);
-[max,locs] = findpeaks(abs(xc_reflex));
-locs_times = t_reflex(locs);
-figure()
-stem(locs_times,max)
-distances = locs_times*speed_of_sound;
-%delay = 0.06;                        %[s]
-%distance = delay*speed_of_sound;       %[m]
+delay = zeros(1,24);
+distance = zeros(1,24);
 
-% fprintf(sprintf('Average distance between mic and first reflection %f m\n', distance));
+for i = 1:24
+    xc = autocorrelations{1,i};
+    t = time_axis{1,i};
+    
+    [max,locs] = findpeaks(abs(xc));
+    if plot_just == i
+        figure(2)
+        plot(t, xc);
+        xlim([0,0.03])
+        xlabel('Time [s]', 'fontsize', 20)
+        sgtitle('Autocorrelation', 'fontsize', 20)
+    end
+    delays = t(locs);
+    delay(i) = delays(1);                           %[s]
+    distance(i) = delay(i)*speed_of_sound;          %[m]
+end
+
+mean_delay = mean(delay)
+mean_distance = mean(distance);
+
+
+fprintf(sprintf('Average distance between mic and first reflection %f m\n', mean_distance));
