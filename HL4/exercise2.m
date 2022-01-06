@@ -86,7 +86,7 @@ for i = 1:24
     distance(i) = delay(i)*speed_of_sound;          %[m]
 end
 
-mean_delay = mean(delay)
+mean_delay = mean(delay);
 mean_distance = mean(distance);
 
 

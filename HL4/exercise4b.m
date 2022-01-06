@@ -14,15 +14,15 @@ close all
 clc
 
 %% Setup
-fs = 48000;         % Sampling frequency
-nfft = fs;          % Number of fft points
-nMic = ;          % Number of microphones
+fs = 48000;          % Sampling frequency
+nfft = fs;           % Number of fft points
+nMic = 1;            % Number of microphones
 
-R =            % Distance between source and microphones
+R = 2.57;            % Distance between source and microphones
 
-typeOfSignal =          % Sweep
+typeOfSignal = 'sweep/';                % Sweep
+dir = ['./recordings/' typeOfSignal];   % Signals directory
 
-dir = ;      % Signals directory
 
 %% RADIANCE COMPUTATION THROUGH THE USE OF THE DIRECT RECORDED SIGNAL
 % Window the signals according to the reflection time and estimate the
