@@ -18,9 +18,9 @@ addpath('Functions');
 
 fs = 48000;          % Sampling frequency
 nfft = fs;           % Number of fft points
-nMic = 1;            % Number of microphones
+nMic = 24;           % Number of speaker orientations
 
-R = 2.57;            % Distance between source and microphones
+R = 2.837842;        % Distance between source and microphones
 
 typeOfSignal = 'noise/';                % Noise
 dir = ['./recordings/' typeOfSignal];   % Signals directory
@@ -32,58 +32,72 @@ dir = ['./recordings/' typeOfSignal];   % Signals directory
 sig = [];   % Signal structure
 
 % Early reflections attenuation. We consider only 2*ns+1 samples of the signal
-ns = 50; % Ideal ns should be on the direct path
+ns = 300;       % Ideal ns should be on the direct path
 t = (0:1/fs:((2*ns)+1)/fs);
 t = t(1:end-1);
 
-TOA_directSignal = 0;                % TOA
-TOA_firstReflection = 0.0024;        % First reflection TOA
+TOA_directSignal = 0.0083;                  % TOA
+TOA_firstReflection = 0.0115;               % First reflection TOA
 
-w = hann(length(t));             % Window
-figure;
-tiledlayout('flow');
+w = hann(length(t));        % Window
 
-for n = 1:nMic            % For each microphone signal
+plot_just = 1;              % between 1 and nMic
+figure(1)
+tiledlayout('flow', 'padding', 'tight');
+
+for i = 1:nMic            % For each microphone signal
     % Load the signal
-    fileName = strcat(dir, num2str(1), '.wav');  % i-th file name
+    fileName = strcat(dir, num2str(i), '.wav');  % i-th file name
     [y, Fs] = audioread(fileName);               % read i-th audio
+    assert(Fs==fs)
     y = y./max(y);
+    t_axis = linspace(0,length(y)/Fs, length(y));
     
     % The window is applied to the signal from the 0 time instant.
-    % Check the effect of differen window sizes.
-    y = y(1:length(t));
-    y_w = y.*w;
+    % ------------ Check the effect of differen window sizes. -------------
+    y_w = y(1:length(t));
+    y_w = y_w.*w;
     
-    % Plot the estimate impulse response    
-    nexttile
-    % Plot the mic signal
-    plot(t, y(1:length(t)))
-    hold on
-    % Plot the window over the signal
-    plot(t, w)
-    % Plot the TOA using stem (see doc stem)
-    index = find(abs(t-TOA_directSignal)==min(abs(t-TOA_directSignal)));
-    stem(t(index), y(index))
-    % Plot the first reflection TOA using stem (see doc stem)
-    index = find(abs(t-TOA_firstReflection)==min(abs(t-TOA_firstReflection)));
-    stem(t(index), y(index))
-    % Plot the windowed signal with thicker line
-    plot(t, y_w, 'linewidth', 2)
-    hold off
-    % Add a legend
-    legend('signal', 'window', 'direct TOA', 'First reflection TOA', ...
-        'windowed signal');
-    xlim([0 0.05]);             % Limit the plot btw 0 and 0.05s
-    xlabel('Time (sec)');
-    title(['Mic: ', num2str(n)]);
-    sig = y_w;      % Add current signal to the structure sig
+    if plot_just == i
+        % Plot the estimate impulse response
+        Y = fft(y_w, nfft);
+        [x, Fs_noise] = audioread('./input signals/noise.wav');
+        assert(Fs_noise==fs)
+        X = fft(x, nfft);
+        H = Y./X;
+        h = real(ifft(H, length(x)));
+        t_h = linspace(0, length(h)/Fs_noise, length(h));
+        nexttile
+        plot(t_h, h)
+        % Plot the mic signal
+        hold on
+        plot(t_axis, y)
+        % Plot the window over the signal
+        plot(t, w)
+        % Plot the TOA using stem (see doc stem)
+        index = find(abs(t-TOA_directSignal(i))==min(abs(t-TOA_directSignal(i))));
+        stem(t(index), y(index))
+        % Plot the first reflection TOA using stem (see doc stem)
+        index = find(abs(t-TOA_firstReflection(i))==min(abs(t-TOA_firstReflection(i))));
+        stem(t(index), y(index))
+        % Plot the windowed signal with thicker line
+        plot(t, y_w, 'linewidth', 2)
+        hold off
+        % Add a legend
+        legend('impulse response', 'signal', 'window', 'direct TOA', 'First reflection TOA', ...
+            'windowed signal');
+        xlim([0 0.05]);             % Limit the plot btw 0 and 0.05s
+        xlabel('Time (sec)');
+        title(['Mic: ', num2str(i)]);
+    end
+    sig(:,i) = y_w;         % Add current signal to the structure sig
 end
 
 %% Radiance estimation
 
-SIG = fft(sig, nfft);   % FFT of the windowed signal
+SIG = fft(sig, nfft);              % FFT of the windowed signal
 
-rad_patt = abs(SIG);    % Compute the radiance pattern magnitude
+rad_patt = abs(R.*(SIG./X));       % Compute the radiance pattern magnitude
 
 %% Radiance pattern plot
 
@@ -91,21 +105,10 @@ rad_patt = abs(SIG);    % Compute the radiance pattern magnitude
 ctr_freqs = [150 250 500 750 1000 1500 2000 5000 7500 10000];
 
 % Microphone angle wrt the speaker frontal face
-angs = 0;
+angs = linspace(0, 360, nMic);
 
 % Plot the estimated radiance pattern using the provided function
 % radianceplot
 
 radianceplot(ctr_freqs, rad_patt, angs, 'noise direct: ');
 
-
-
-%% i miei dubbi sono:
-% - signal structure: non so cosa farci
-% - t lo scrivo già sapendo che prendo ns samples? o devo prendere l'esatta
-%   durata del segnale i-esimo? in questo caso dovrei fare un ciclo for per
-%   raccogliere tutti i file e per ciascuno fare tutto ciò che c'è in
-%   questo eserciizio?
-% - i TOA li metto io sulla base dei risultati degli esercizi precedenti?
-% - il file caricato lo lascio della sua lunghezza o lo accorcio a t?
-% - come si fa il radiation pattern magnitude? è semplicemente abs()?

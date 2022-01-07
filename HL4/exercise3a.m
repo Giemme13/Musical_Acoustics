@@ -19,7 +19,7 @@ clc
 %% Setup
 addpath('Functions')
 
-nMeasures = 24;              % Number of microphones
+nMic = 24;              % Number of microphones
 speed_of_sound = 343.8; % [m]/[s]
 
 typeOfSignal = 'noise/'; % Noise
@@ -36,78 +36,65 @@ nfft = fs;              % Number of fft points
 t = (0:1/fs:nfft/fs);   % Time axis
 t = t(1:end-1);         
 
-%% working on 1 file
-% Load the signal
-    fileName=strcat(dir,'24.wav'); 
-    [y, fs]=audioread(fileName);
-    % Cut the recordings accoding to input signal length
-    y=y(1:length(x));
-    % Compute the impulse response using the function extractirnoise
-    [ir] = extractirnoise(x, y, nfft);
-    plot(t, abs(ir))
-    % Find the first (and highest) impulse of the impulse response
-    ir=abs(ir);
-    [peaks,loc] = maxk(ir, 2);
-    % Double check if we are finding back the correct direct path length
-    toa=t(loc(1));
-    directPathTimeOfArrival = toa;
-    directPathLength = directPathTimeOfArrival*speed_of_sound;
-    %[second_peak, loc2]=max(ir(ir<peak));
-    toa2=t(loc(2));
-    delays=toa2;
-    firstReflPath=delays*speed_of_sound;
 
 %% cycle on all files
 
-directPathTimeOfArrival=zeros(1,nMeasures);
-directPathLength=zeros(1,nMeasures);
-delays=zeros(1,nMeasures);
-firstReflPath=zeros(1,nMeasures);
+directPathTimeOfArrival = zeros(1, nMic);
+directPathLength = zeros(1, nMic);
+firstReflTimeOfArrival = zeros(1, nMic);
+firstReflPathLength = zeros(1, nMic);
 
-for i = 1:nMeasures            % For each microphone signal
+figure(1)
+tiledlayout('flow', 'padding', 'tight');
+
+for i = 1:nMic            % For each microphone signal
     % Load the signal
-    fileName=strcat(dir, num2str(i), '.wav'); 
-    [y, fs]=audioread(fileName);
+    fileName = strcat(dir, num2str(i), '.wav'); 
+    [y, fs] = audioread(fileName);
     % Cut the recordings accoding to input signal length
-    y=y(1:length(x));
+    y = y(1:length(x));
     % Compute the impulse response using the function extractirnoise
     [ir] = extractirnoise(x, y, nfft);
-    ir=abs(ir);
+    ir = abs(ir);
     %plot(t, abs(ir))
     % Find the first (and highest) impulse of the impulse response
-    [peak,loc] = maxk(ir, 2);
+    [peak,loc] = max(ir);
     % Double check if we are finding back the correct direct path length
-    toa=t(loc(1));
-    directPathTimeOfArrival(i) = toa;
+    TOA = t(loc);
+    directPathTimeOfArrival(i) = TOA;
     directPathLength(i) = directPathTimeOfArrival(i)*speed_of_sound;
-    %finding first reflection path
-    toa2=t(loc(2));
-    delays(i)=toa2;
-    firstReflPath(i)=delays(i)*speed_of_sound;
-    
-    % Plot the estimate impulse response
-    %nexttile
-    %plot(t, ir);
-    %xlim([0 0.05]);
-    %xlabel('Time (sec)');
-    %title(['Mic: ',num2str(n)]);
-    
+    %Plot the estimate impulse response
+    nexttile
+    plot(t, ir);
+    grid on
+    xlim([0.007 0.013]);
+    xlabel('Time (sec)');
+    title(['Mic: ',num2str(i)]);
 end
 
 %% SPEAKER TO MIC DISTANCE (DIRECT PATH LENGTH)
 % Print on screen the estimated distance from the source
+directPathLength = mean(directPathLength);
 fprintf(sprintf('Direct path length %f m\n', directPathLength));
 
 %% MIC TO REFLECTORS DISTANCE COMPUTATION
 % Put here the difference between first reflection and direct sound time of
 % arrivals (TOA)
-
+firstReflTimeOfArrival = [0.011875, 0.0111875, 0.0112083, 0.0112083, 0.0114167, 0.0114167, ...
+    0.0114583, 0.0115417, 0.0115833, 0.0116458, 0.0117708, 0.0118125, ...
+    0.0117917, 0.0118125, 0.0118333, 0.0116458, 0.0113958, 0.0113542, ...
+    0.0113125, 0.0112708, 0.0111667, 0.0112083, 0.0111875, 0.0111875];
+delays = firstReflTimeOfArrival - directPathTimeOfArrival;
+TOA_direct = mean(directPathTimeOfArrival);
+TOA_reflex = mean(firstReflTimeOfArrival);
 % Inspecting the impulse responses determine the delay of the first
 % reflection
-%delay = ; %[s]
+delay = mean(delays); %[s]
+fprintf(sprintf('Average delay between direct sound and first reflection: %f m\n', ...
+    delay));
 % Compute the distance from the reflector
-distance = firstReflPath-directPathLength;
+distance = delay*speed_of_sound;
 
 % Print on screen the estimated distance from the reflector
-%fprintf(sprintf('Average distance between first path and reflector %f m\n', ...
- %   distance));
+fprintf(sprintf('Average distance between reflector and microphone: %f m\n', ...
+    distance));
