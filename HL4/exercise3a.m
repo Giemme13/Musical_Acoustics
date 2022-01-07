@@ -38,7 +38,7 @@ t = t(1:end-1);
 
 %% working on 1 file
 % Load the signal
-    fileName=strcat(dir,'2.wav'); 
+    fileName=strcat(dir,'24.wav'); 
     [y, fs]=audioread(fileName);
     % Cut the recordings accoding to input signal length
     y=y(1:length(x));
@@ -46,17 +46,22 @@ t = t(1:end-1);
     [ir] = extractirnoise(x, y, nfft);
     plot(t, abs(ir))
     % Find the first (and highest) impulse of the impulse response
-    [peak,loc] = max(abs(ir));
+    ir=abs(ir);
+    [peaks,loc] = maxk(ir, 2);
     % Double check if we are finding back the correct direct path length
-    toa=t(loc);
+    toa=t(loc(1));
     directPathTimeOfArrival = toa;
     directPathLength = directPathTimeOfArrival*speed_of_sound;
+    %[second_peak, loc2]=max(ir(ir<peak));
+    toa2=t(loc(2));
+    delays=toa2;
+    firstReflPath=delays*speed_of_sound;
 
 %% cycle on all files
 
 directPathTimeOfArrival=zeros(1,nMeasures);
 directPathLength=zeros(1,nMeasures);
-delays=zero(1,nMeasures);
+delays=zeros(1,nMeasures);
 firstReflPath=zeros(1,nMeasures);
 
 for i = 1:nMeasures            % For each microphone signal
@@ -70,14 +75,13 @@ for i = 1:nMeasures            % For each microphone signal
     ir=abs(ir);
     %plot(t, abs(ir))
     % Find the first (and highest) impulse of the impulse response
-    [peak,loc] = max(ir);
+    [peak,loc] = maxk(ir, 2);
     % Double check if we are finding back the correct direct path length
-    toa=t(loc);
+    toa=t(loc(1));
     directPathTimeOfArrival(i) = toa;
     directPathLength(i) = directPathTimeOfArrival(i)*speed_of_sound;
     %finding first reflection path
-    [second_peak, loc2]=max(ir(ir<peak));
-    toa2=t(loc2);
+    toa2=t(loc(2));
     delays(i)=toa2;
     firstReflPath(i)=delays(i)*speed_of_sound;
     

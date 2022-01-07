@@ -19,21 +19,47 @@ clc
 %% Setup
 addpath('Functions')
 
-nAngles = 24; 
+nMeasures = 24; 
 typeOfSignal =  'sweep/';                   % Sweep
 dir = ['./recordings/' typeOfSignal];  % File directory
 
 fs = 48000;                                 % Sampling frequency
 speed_of_sound = 343.8;                     %[m]/[s]            
 duration = 10;                               %[s] duration of sweep signal
-
+f1=50;
+f2=22000;
 % This is the input signal. The following function computes 1/FFT(sweep). 
 % We will thus need to MULTIPLY this signal for FFT(output) in order to 
 % apply deconvolution (i.e. computing the radiation pattern)
 % Use the provided synthSweep function.
-figure;
-t = tiledlayout('flow')
-for n = 1:nMic    % For each microphone signal
+[sweep invsweepfft sweepRate] = synthSweep(duration,fs,f1,f2);
+
+
+% Setting up time scale for computed ir
+nfft = fs;              % Number of fft points
+t = (0:1/fs:nfft/fs);   % Time axis
+t = t(1:end-1);  
+
+%% working on single file
+
+% Load the signal
+fileName=strcat(dir, '1.wav');
+[x]=audioread(fineName);
+    
+% Comput the impulse response using the function extractirsweep
+[ir] = 
+    
+% Find the first impulse of the impulse response
+[peak,loc] = max(abs(ir));    
+
+% Double check if we are finding back the correct direct path length
+toa=t(loc);
+directPathTimeOfArrival = toa;
+directPathLength = directPathTimeOfArrival*speed_of_sound;
+
+
+%% cycle on all files
+for n = 1:nMeasures    % For each microphone signal
     % Load the signal
 
     
@@ -62,7 +88,7 @@ end
 %% SPEAKER TO MIC DISTANCE (DIRECT PATH LENGTH)
 % Print on screen the estimated distance from the source
 figure;
-plot(1:nMic, directPathLength)
+plot(1:nMeasures, directPathLength)
 xlabel('Measurement'), ylabel('Distance highest peak')
 
 fprintf(sprintf('Direct path length %f m\n', directPathLength));
