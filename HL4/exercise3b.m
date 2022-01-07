@@ -19,9 +19,9 @@ clc
 %% Setup
 addpath('Functions')
 
-nMic = 
-typeOfSignal =                     % Sweep
-dir =   % File directory
+nAngles = 24; 
+typeOfSignal =  'sweep/';                   % Sweep
+dir = ['./recordings/' typeOfSignal];  % File directory
 
 fs = 48000;                                 % Sampling frequency
 speed_of_sound = 343.8;                     %[m]/[s]            

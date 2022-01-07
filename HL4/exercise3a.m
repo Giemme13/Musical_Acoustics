@@ -19,44 +19,66 @@ clc
 %% Setup
 addpath('Functions')
 
-nMic = ;              % Number of microphones
+%nMic = ;              % Number of microphones
 speed_of_sound = 343.8; % [m]/[s]
 
-typeOfSignal =  % Noise
-dir = % File directory
+typeOfSignal = 'noise/'; % Noise
+dir = ['./recordings/' typeOfSignal]; % File directory
 
-inputSignalDir = ;            % Source signal directory
-inputSignalFileName = ;    % Source signal name
+inputSignalDir = './input signals/';            % Source signal directory
+inputSignalFileName = strcat(inputSignalDir, 'noise.wav');    % Source signal name
 
 %% Impulse response estimation
 
 % The input signal must be known, load the input signal
-[x, fs] = ;
+[x, fs] = audioread(inputSignalFileName);
 nfft = fs;              % Number of fft points
 t = (0:1/fs:nfft/fs);   % Time axis
 t = t(1:end-1);         
-figure;
 
-for n = 1:nMic            % For each microphone signal
-    % Load the signal
-    
+%working on 1 file
+% Load the signal
+    fileName=strcat(dir,'2.wav'); 
+    [y, fs]=audioread(fileName);
     % Cut the recordings accoding to input signal length
-    
+    y=y(1:length(x));
     % Compute the impulse response using the function extractirnoise
-    [ir] =
-
+    [ir] = extractirnoise(x, y, nfft);
+    plot(t, abs(ir))
     % Find the first (and highest) impulse of the impulse response
-
+    [max,locs] = findpeaks(abs(ir));
     % Double check if we are finding back the correct direct path length
-    directPathTimeOfArrival = 
-    directPathLength = 
+    toas=t(locs);
+    directPathTimeOfArrival = toas(1);
+    directPathLength = directPathTimeOfArrival*speed_of_sound;
+
+%% cycle on all files
+
+directPathTimeOfArrival=zeros(1,24);
+directPathLength=zeros(1,24);
+
+for i = 1:24            % For each microphone signal
+    % Load the signal
+    fileName=strcat(dir, num2str(i), '.wav'); 
+    [y, fs]=audioread(fileName);
+    % Cut the recordings accoding to input signal length
+    y=y(1:length(x));
+    % Compute the impulse response using the function extractirnoise
+    [ir] = extractirnoise(x, y, nfft);
+    plot(t, abs(ir))
+    % Find the first (and highest) impulse of the impulse response
+    [max,locs] = findpeaks(ir);
+    % Double check if we are finding back the correct direct path length
+    toas=t(locs);
+    directPathTimeOfArrival(i) = toas(1);
+    directPathLength(i) = directPathTimeOfArrival(i)*speed_of_sound;
     
     % Plot the estimate impulse response
-    nexttile
-    plot(t, ir);
-    xlim([0 0.05]);
-    xlabel('Time (sec)');
-    title(['Mic: ',num2str(n)]);
+    %nexttile
+    %plot(t, ir);
+    %xlim([0 0.05]);
+    %xlabel('Time (sec)');
+    %title(['Mic: ',num2str(n)]);
     
 end
 
@@ -70,10 +92,10 @@ fprintf(sprintf('Direct path length %f m\n', directPathLength));
 
 % Inspecting the impulse responses determine the delay of the first
 % reflection
-delay = ; %[s]
+%delay = ; %[s]
 % Compute the distance from the reflector
-distance = 
+%distance = 
 
 % Print on screen the estimated distance from the reflector
-fprintf(sprintf('Average distance between first path and reflector %f m\n', ...
-    distance));
+%fprintf(sprintf('Average distance between first path and reflector %f m\n', ...
+ %   distance));
