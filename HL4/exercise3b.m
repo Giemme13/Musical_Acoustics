@@ -43,7 +43,7 @@ t = t(1:end-1);
 %% working on single file
 
 % Load the signal
-fileName=strcat(dir, '24.wav');
+fileName=strcat(dir, '1.wav');
 [x]=audioread(fileName);
     
 % Comput the impulse response using the function extractirsweep
@@ -117,7 +117,7 @@ firstReflPath=zeros(1,nMeasures);
 firstReflTimeOfArrival=zeros(1,nMeasures);
 for i=1:nMeasures
     firstReflTimeOfArrival(i)=t(reflSamples(i));
-    firstReflPath(i)=toa2*speed_of_sound;
+    firstReflPath(i)=firstReflTimeOfArrival(i)*speed_of_sound;
 end
 
 TOA_direct = mean(directPathTimeOfArrival);

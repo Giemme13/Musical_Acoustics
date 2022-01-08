@@ -18,38 +18,40 @@ addpath('Functions')
 
 fs = 48000;             % Sampling frequency
 nfft = fs;              % Number of fft points
-t = % Time axis
+t = (0:1/fs:((2*ns)+1)/fs); % Time axis
 t = t(1:end-1);         
 speed_of_sound = 343.8; % [m]/[s]
 
-nMic =           % Number of microphones
-R =            % Distance between source and microphones
+nMic = 24;          % Number of microphones
+R = 2.837842;           % Distance between source and microphones
 
-typeOfSignal =  % Noise
-dir = % File directory
+typeOfSignal = 'noise/'; % Noise
+dir = ['./recordings/' typeOfSignal];% File directory
 
-inputSignalDir =          % Source signal directory
-inputSignalFileName =    % Source signal name
+inputSignalDir = './input signals/';            % Source signal directory
+inputSignalFileName = strcat(inputSignalDir, 'noise.wav');    % Source signal name
 
 %% Radiance estimation using the impulse response
 
 sig = [];
 
-% First reflections attenuation. We consider a small opart of the ir
+% First reflections attenuation. We consider a small part of the ir
 % windowing the impulse response
 ns = 50;        % We need a small window
 
-TOA_directSignal =  % Direct signal Time Of Arrival
-TOA_firstReflection = 
+TOA_directSignal = 0.0083;                  % TOA
+TOA_firstReflection = 0.0115;               % First reflection TOA
 
 % Source signal must be known. Load the source signal.
+[x, fs] = audioread(inputSignalFileName);
 
 figure;
 tiledlayout('flow')
 sig = zeros(fs, nMic);
 for n = 1:nMic              % For each microphone signal
     % Load the signal
-    
+    fileName = strcat(dir, num2str(i), '.wav');  % i-th file name
+    [y, Fs] = audioread(fileName);               % read i-th audio
     % Create a hanning window of 2*ns+1 length
     w = 
       
