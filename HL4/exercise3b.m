@@ -32,7 +32,7 @@ f2=22000;
 % We will thus need to MULTIPLY this signal for FFT(output) in order to 
 % apply deconvolution (i.e. computing the radiation pattern)
 % Use the provided synthSweep function.
-[sweep invsweepfft sweepRate] = synthSweep(duration,fs,f1,f2);
+[sweep, invsweepfft, sweepRate] = synthSweep(duration,fs,f1,f2);
 
 
 % Setting up time scale for computed ir
@@ -43,45 +43,59 @@ t = t(1:end-1);
 %% working on single file
 
 % Load the signal
-fileName=strcat(dir, '1.wav');
-[x]=audioread(fineName);
+fileName=strcat(dir, '24.wav');
+[x]=audioread(fileName);
     
 % Comput the impulse response using the function extractirsweep
-[ir] = 
+[ir] = extractirsweep(x, invsweepfft); 
     
 % Find the first impulse of the impulse response
-[peak,loc] = max(abs(ir));    
+ir=abs(ir);
+plot(ir)
+[peak,loc] = maxk(ir,2);    
 
 % Double check if we are finding back the correct direct path length
-toa=t(loc);
+toa=t(loc(1));
 directPathTimeOfArrival = toa;
 directPathLength = directPathTimeOfArrival*speed_of_sound;
+%toa2=t(loc(2));
+%delays=toa2;
+%firstReflPath=delays*speed_of_sound;
 
 
 %% cycle on all files
+
+directPathTimeOfArrival=zeros(1,nMeasures);
+directPathLength=zeros(1,nMeasures);
+%delays=zeros(1,nMeasures);
+%firstReflPath=zeros(1,nMeasures);
+
 for n = 1:nMeasures    % For each microphone signal
     % Load the signal
-
+    fileName=strcat(dir, num2str(n), '.wav');
+    [x]=audioread(fileName);
     
     % Comput the impulse response using the function extractirsweep
-    [ir] =
-
-    % Setting up time scale for computed ir
-    t = 
+    [ir] = extractirsweep(x, invsweepfft); 
     
     % Find the first impulse of the impulse response
-    
+    ir=abs(ir);
+    [peak,loc] = maxk(ir,2);  
 
     % Double check if we are finding back the correct direct path length
-    directPathTimeOfArrival = 
-    directPathLength(n) = 
+    directPathTimeOfArrival(n) = t(loc(1));
+    directPathLength(n) = directPathTimeOfArrival(n)*speed_of_sound;
+    %toa2=t(loc(2));
+    %delays(n)=toa2;
+    %firstReflPath(n)=delays(n)*speed_of_sound;
+
     
     % Plot the estimated impulse response
-    nexttile
-    plot(t, ir);
-    xlim([0 0.05]);
-    xlabel('Time (sec)');
-    title(['Mic: ', num2str(n)]);
+    %nexttile
+    %plot(t, ir);
+    %xlim([0 0.05]);
+    %xlabel('Time (sec)');
+    %title(['Mic: ', num2str(n)]);
     
 end
 
@@ -96,12 +110,23 @@ fprintf(sprintf('Direct path length %f m\n', directPathLength));
 %% MIC TO REFLECTOR DISTANCE COMPUTATION
 % Put here the difference between first reflection and direct sound time of
 % arrivals (TOA)
+reflSamples=[535,538,538,539,538,542,544,546,557,559,564,566, ...
+    567,566,562,559,547,545,543,541,539,539,538,535];
 
-% Inspecting the impulse responses determine the delay of the first
-% reflection
-delay = ; %[s]
+firstReflPath=zeros(1,nMeasures);
+firstReflTimeOfArrival=zeros(1,nMeasures);
+for i=1:nMeasures
+    firstReflTimeOfArrival(i)=t(reflSamples(i));
+    firstReflPath(i)=toa2*speed_of_sound;
+end
+
+TOA_direct = mean(directPathTimeOfArrival);
+TOA_reflex = mean(firstReflTimeOfArrival);
+delays = firstReflTimeOfArrival - directPathTimeOfArrival;
+delay = mean(delays); %[s]
+
 % Compute the distance from the reflectors
-distance = ;
+distance = delay*speed_of_sound;
 
 % Print on screen the estimated distance from the walls
 fprintf(sprintf('Average distance between first path and reflector %f m\n', ...
