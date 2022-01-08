@@ -19,10 +19,10 @@ clc
 %% Setup
 addpath('Functions')
 
-nMic = 24;              % Number of microphones
-speed_of_sound = 343.8; % [m]/[s]
+nMic = 24;                      % Number of microphones
+speed_of_sound = 343.8;         % [m]/[s]
 
-typeOfSignal = 'noise/'; % Noise
+typeOfSignal = 'noise/';        % Noise
 dir = ['./recordings/' typeOfSignal]; % File directory
 
 inputSignalDir = './input signals/';            % Source signal directory
@@ -36,44 +36,47 @@ nfft = fs;              % Number of fft points
 t = (0:1/fs:nfft/fs);   % Time axis
 t = t(1:end-1);         
 
-
-%% cycle on all files
-
 directPathTimeOfArrival = zeros(1, nMic);
 directPathLength = zeros(1, nMic);
-firstReflTimeOfArrival = zeros(1, nMic);
-firstReflPathLength = zeros(1, nMic);
 
-figure(1)
+figure(1);
 tiledlayout('flow', 'padding', 'tight');
 
 for i = 1:nMic            % For each microphone signal
     % Load the signal
     fileName = strcat(dir, num2str(i), '.wav'); 
-    [y, fs] = audioread(fileName);
+    [y] = audioread(fileName);
+    
     % Cut the recordings accoding to input signal length
     y = y(1:length(x));
+    
     % Compute the impulse response using the function extractirnoise
     [ir] = extractirnoise(x, y, nfft);
-    ir = abs(ir);
-    %plot(t, abs(ir))
+    
     % Find the first (and highest) impulse of the impulse response
+    ir = abs(ir);
     [peak,loc] = max(ir);
+    
     % Double check if we are finding back the correct direct path length
-    TOA = t(loc);
-    directPathTimeOfArrival(i) = TOA;
+    directPathTimeOfArrival(i) = t(loc);
     directPathLength(i) = directPathTimeOfArrival(i)*speed_of_sound;
+    
     %Plot the estimate impulse response
     nexttile
     plot(t, ir);
     grid on
-    xlim([0.007 0.013]);
+    xlim([0 0.05]);
     xlabel('Time (sec)');
     title(['Mic: ',num2str(i)]);
+    
 end
 
 %% SPEAKER TO MIC DISTANCE (DIRECT PATH LENGTH)
 % Print on screen the estimated distance from the source
+figure(2)
+plot(1:nMic, directPathLength)
+xlabel('Measurement'), ylabel('Distance highest peak')
+
 directPathLength = mean(directPathLength);
 fprintf(sprintf('Direct path length %f m\n', directPathLength));
 
@@ -87,11 +90,13 @@ firstReflTimeOfArrival = [0.011875, 0.0111875, 0.0112083, 0.0112083, 0.0114167, 
 delays = firstReflTimeOfArrival - directPathTimeOfArrival;
 TOA_direct = mean(directPathTimeOfArrival);
 TOA_reflex = mean(firstReflTimeOfArrival);
+
 % Inspecting the impulse responses determine the delay of the first
 % reflection
-delay = mean(delays); %[s]
+delay = mean(delays);   %[s]
 fprintf(sprintf('Average delay between direct sound and first reflection: %f m\n', ...
     delay));
+
 % Compute the distance from the reflector
 distance = delay*speed_of_sound;
 

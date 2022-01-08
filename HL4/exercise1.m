@@ -19,27 +19,30 @@ typeOfSignal = 'sweep/';        % Noise or sweep
 
 dir = ['./recordings/' typeOfSignal];  % Recordings directory
 
-nMic = 1;                       % Number of microphones
-signalEnergy = zeros(1,24);     % Vector of energy
+nMic = 24;                      % Number of microphone signals
+signalEnergy = zeros(1,nMic);   % Vector of energy
 
 % Labels will be the angle 
-labels = cell(1,24);
-step = 15;                      % one measure every 15 degrees
-deg = zeros(1,24);
-for i = 1:24
+labels = cell(1,nMic);
+step = 360/nMic;                % one measure every 15 degrees
+deg = zeros(1,nMic);
+for i = 1:nMic
     deg(i)=step*(i-1);
     labels{:,i} = strcat(num2str(deg(i)), '°');
 end
 
 %% Load the signals and compute the energy
 
-for i = 1:24
+for i = 1:nMic
     fileName = strcat(dir, num2str(i), '.wav');  % i-th file name
     [x, Fs] = audioread(fileName);               % read i-th audio
     for j = 1:length(x)
         signalEnergy(i) = signalEnergy(i)+(abs(x(j)))^2; % compute energy for i-th signal
     end    
 end
+
+signalEnergy = [signalEnergy, signalEnergy(1)];
+deg = [deg, 360];
 %% Plot the results
 
 figure(1)
@@ -49,5 +52,8 @@ title('Energy of the signal', 'fontsize', 20)
 xticks([0,45,90,135,180,225,270,315,360])
 xlim([0,360])
 
-
-
+theta = deg;
+phi = linspace(0,0,25);
+figure(2)
+patternCustom(signalEnergy, theta, phi,'CoordinateSystem','polar',...
+    'Slice','phi','SliceValue',0);

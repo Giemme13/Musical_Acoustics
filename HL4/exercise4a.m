@@ -28,7 +28,6 @@ dir = ['./recordings/' typeOfSignal];   % Signals directory
 %% RADIANCE COMPUTATION THROUGH THE USE OF THE DIRECT RECORDED SIGNAL
 % Window the signals according to the reflection time and estimate the
 % radiance pattern. 
-
 sig = [];   % Signal structure
 
 % Early reflections attenuation. We consider only 2*ns+1 samples of the signal
@@ -39,7 +38,7 @@ t = t(1:end-1);
 TOA_directSignal = 0.0083;                  % TOA
 TOA_firstReflection = 0.0115;               % First reflection TOA
 
-w = hann(length(t));        % Window
+w = ones(length(t));        % Window
 
 plot_just = 1;              % between 1 and nMic
 figure(1)
