@@ -77,8 +77,7 @@ figure(2)
 plot(1:nMic, directPathLength)
 xlabel('Measurement'), ylabel('Distance highest peak')
 
-directPathLength = mean(directPathLength);
-fprintf(sprintf('Direct path length %f m\n', directPathLength));
+fprintf(sprintf('Direct path length %f m\n', mean(directPathLength)));
 
 %% MIC TO REFLECTORS DISTANCE COMPUTATION
 % Put here the difference between first reflection and direct sound time of
