@@ -20,7 +20,7 @@ clc
 
 addpath('Functions');
 
-nMic = 1;                                  % Number of microphones
+nMic = 24;                                 % Number of microphone signals
 typeOfSignal = 'sweep/';                   % Noise or sweep
 dir = ['./recordings/' typeOfSignal];      % Recordings directory
 
@@ -28,66 +28,51 @@ speed_of_sound = 343.8;                    % [m]/[s]
 
 %% Plot the signal autocorrelation
 
-signals = cell(1,24);               %stores signals
-time_axis = cell(1,24);             %stores time axis of each signal
-autocorrelations = cell(1,24);      %stores signals' autocorrelation
-plot_just = 6;                      %plots diagrams of just one signal
+autocorrelations = cell(1, nMic);
+time_axis = cell(1,nMic);
 
-for i = 1:24
+figure(1)
+tiledlayout('flow', 'padding', 'tight');
+for i = 1:nMic
     % Load the signal
-    fileName = strcat(dir, num2str(i), '.wav');  % i-th file name
-    [x, Fs] = audioread(fileName);               % read i-th audio
-    signals{1,i} = x;
+    fileName = strcat(dir, num2str(i), '.wav');
+    [x, Fs] = audioread(fileName);
     % Time length
     time_length = length(x)/Fs;
     % Time axis
-    t = linspace(0,time_length,length(x))';
-    time_axis{1,i} = t;
+    t = linspace(0,time_length,length(x));
+    time_axis{1, i} = t;
     % Auto correlation
     xc = xcorr(x, 'normalized');
-    % Half of the autocorrelation
     xc = xc(round((length(xc)/2)):end);
-    autocorrelations{1,i} = xc;
-    if plot_just == i
-        % Plot 
-        figure(1)
-        subplot(2,1,1)
-        plot(t, x)
-        xlabel('Time [s]', 'fontsize', 20)
-        title('Original signal', 'fontsize', 20)
-        subplot(2,1,2)
-        plot(t, xc);
-        xlabel('Time [s]', 'fontsize', 20)
-        title('Autocorrelation', 'fontsize', 20)
-        sgtitle(['Mic: ', num2str(nMic)], 'fontsize', 20)
-    end
+    autocorrelations{1, i} = xc;
+    % Plot the autocorrelation
+    nexttile
+    plot(t, xc);
+    title(['Mic: ', num2str(i)]);
+    axis([0 0.02 -1 1]);    % Limit the axis
+    xlabel('Time (sec)');
 end
 
 
 %% MIC TO REFLECTORS DISTANCE COMPUTATION
-% Put here the difference between first reflection
-delay = zeros(1,24);
-distance = zeros(1,24);
+% Put here the difference between first reflection 
+% values taken from inspection of autocorrelation diagrams
+delay_noise = [0.00316668, 0.00316668, 0.00314585, 0.00314585, 0.00314585, ...
+    0.00306252, 0.00304168, 0.00304168, 0.00302085, 0.00306252, 0.00302085, ...
+    0.00306252, 0.00300002, 0.00304168, 0.00306252, 0.00302085, 0.00302085, ...
+    0.00308335, 0.00310418, 0.00312502, 0.00312502, 0.00314585, 0.00314585, ...
+    0.00314585];    %[s]
+delay_sweep = [0.00658335, 0.00668751, 0.00662501, 0.00679168, 0.00679168, ...
+    0.00695835, 0.00656251, 0.00650001, 0.00641668, 0.00652085, 0.00645835, ...
+    0.00664585, 0.00672918, 0.00664585, 0.00683335, 0.00691668, 0.00641668, ...
+    0.00639584, 0.00664585, 0.00683335, 0.00687501, 0.00677084, 0.00662501, ...
+    0.00662501];    %[s]
 
-for i = 1:24
-    xc = autocorrelations{1,i};
-    t = time_axis{1,i};
-    
-    [max,locs] = findpeaks(abs(xc));
-    if plot_just == i
-        figure(2)
-        plot(t, xc);
-        xlim([0,0.03])
-        xlabel('Time [s]', 'fontsize', 20)
-        sgtitle('Autocorrelation', 'fontsize', 20)
-    end
-    delays = t(locs);
-    delay(i) = delays(1);                           %[s]
-    distance(i) = delay(i)*speed_of_sound;          %[m]
-end
+distance_noise = delay_noise * speed_of_sound;      %[m]
+distance_sweep = delay_sweep * speed_of_sound;      %[m]
 
-mean_delay = mean(delay);
-mean_distance = mean(distance);
-
-
-fprintf(sprintf('Average distance between mic and first reflection %f m\n', mean_distance));
+fprintf(sprintf('Average distance between mic and first reflection (noise) %f m\n',...
+    mean(distance_noise)));
+fprintf(sprintf('Average distance between mic and first reflection (sweep) %f m\n',...
+    mean(distance_sweep)));

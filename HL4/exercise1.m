@@ -24,7 +24,7 @@ signalEnergy = zeros(1,nMic);   % Vector of energy
 
 % Labels will be the angle 
 labels = cell(1,nMic);
-step = 360/nMic;                % one measure every 15 degrees
+step = 360/nMic;                % one measure every microphone measure
 deg = zeros(1,nMic);
 for i = 1:nMic
     deg(i)=step*(i-1);
@@ -34,15 +34,17 @@ end
 %% Load the signals and compute the energy
 
 for i = 1:nMic
-    fileName = strcat(dir, num2str(i), '.wav');  % i-th file name
-    [x, Fs] = audioread(fileName);               % read i-th audio
+    fileName = strcat(dir, num2str(i), '.wav');
+    [x, Fs] = audioread(fileName);
     for j = 1:length(x)
-        signalEnergy(i) = signalEnergy(i)+(abs(x(j)))^2; % compute energy for i-th signal
+        signalEnergy(i) = signalEnergy(i)+(abs(x(j)))^2;
     end    
 end
 
+% close the 'circle' placing at 360° the same value we have at 0°
 signalEnergy = [signalEnergy, signalEnergy(1)];
 deg = [deg, 360];
+
 %% Plot the results
 
 figure(1)

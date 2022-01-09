@@ -18,11 +18,13 @@ addpath('Functions')
 
 fs = 48000;             % Sampling frequency
 nfft = fs;              % Number of fft points
-   
 speed_of_sound = 343.8; % [m]/[s]
-
-nMic = 24;          % Number of microphones
-R = 2.837842;           % Distance between source and microphones
+nMic = 24;              % Number of microphones
+% Distance between source and microphones
+R = [2.764725, 2.764725, 2.779050, 2.786213, 2.786213, 2.800538, ...
+     2.822025, 2.843513, 2.865000, 2.886488, 2.915138, 2.929463, ...
+     3.022575, 2.929463, 2.907975, 2.886488, 2.865000, 2.843513, ...
+     2.814863, 2.800538, 2.786213, 2.779050, 2.764725, 2.764725];
 
 typeOfSignal = 'noise/'; % Noise
 dir = ['./recordings/' typeOfSignal];% File directory
@@ -54,58 +56,11 @@ TOA_firstReflection = [0.0118750, 0.0111875, 0.0112083, 0.0112083, ...
 % Source signal must be known. Load the source signal.
 [x, fs] = audioread(inputSignalFileName);
 
-%% single file
+figure(1)
+tiledlayout('flow', 'padding', 'tight');
 
-% Load the signal
-    fileName = strcat(dir, '1.wav');  % i-th file name
-    [y, Fs] = audioread(fileName);               % read i-th audio
-    % Create a hanning window of 2*ns+1 length
-    w = hann((2*ns)+1);
-      
-    % Comput the impulse response using the function extractirnoise
-    [ir] = extractirnoise(x, y, nfft);
-    ir=abs(ir);
-    t = (0:1/fs:nfft/fs);   % Time axis
-    t = t(1:end-1); 
-
-    % Windowing the ir. In order to take into account windows of arbitrary
-    % length, the ir is circularly shifted until the first peak is at the
-    % middle of the array. This prevents the left boundary of the windows
-    % to be out of the vector. See function circshift.
-    irCircular = circshift(ir', length(ir)/2); 
-    %plot(irCircular)
-    
-    % Use the TOA information in order to find the correct poisition of the
-    % first path in the shifted signal.
-    [peak, loc] = max(irCircular); %find TOA index
-    
-    % Impulse response windowing
-    % we want to maintain time information in the windowed impulse response.
-    % We allocate one array of the same length of the original ir, and then
-    % add samples from the windowed signal. Finally, we invert the
-    % previously applied circShift to return back to the correct impulse
-    % response timing.
-    irCircular_w = zeros(1, length(ir)); % Initialize the vector
-    for i=1:length(w)
-        irCircular_w(loc-ns+i-1)=w(i)*irCircular(loc-ns+i-1); % Window the ir 
-    end
-    
-    ir_w = circshift(irCircular_w, length(ir)-loc+ns); % Shift ir back
-    plot(ir_w)
-    
-    % Plot the estimated impulse response
-%     plot(t, ir(1:length(t)));
-    %hold on
-    % Plot the TOA and TOA First over the IR
-%     stem(TOA_directSignal, abs(max(ir_w)));
-%     stem(TOA_firstReflection, abs(max(ir_w)));
-
-
-%% cycle on all files
-
-%figure;
-%tiledlayout('flow')
 sig = zeros(fs, nMic);
+
 % Create a hanning window of 2*ns+1 length
 w = hann((2*ns)+1);
 
@@ -116,16 +71,14 @@ for n = 1:nMic              % For each microphone signal
       
     % Comput the impulse response using the function extractirnoise
     [ir] = extractirnoise(x, y, nfft);
-    ir=abs(ir);
-    t = (0:1/fs:nfft/fs);   % Time axis
-    t = t(1:end-1); 
+    ir = abs(ir);
+    t = linspace(0, length(ir)/fs, length(ir));
 
     % Windowing the ir. In order to take into account windows of arbitrary
     % length, the ir is circularly shifted until the first peak is at the
     % middle of the array. This prevents the left boundary of the windows
     % to be out of the vector. See function circshift.
     irCircular = circshift(ir', length(ir)/2); 
-    %plot(irCircular)
     
     % Use the TOA information in order to find the correct poisition of the
     % first path in the shifted signal.
@@ -138,25 +91,24 @@ for n = 1:nMic              % For each microphone signal
     % previously applied circShift to return back to the correct impulse
     % response timing.
     irCircular_w = zeros(1, length(ir)); % Initialize the vector
-    for i=1:length(w)
-        irCircular_w(loc-ns+i-1)=w(i)*irCircular(loc-ns+i-1); % Window the ir 
-    end
-    
+    irCircular_w(loc-ns:loc+ns) = w'.*irCircular(loc-ns:loc+ns); % Window the ir
     ir_w = circshift(irCircular_w, length(ir)-loc+ns); % Shift ir back
     
     % Plot the estimated impulse response
-    plot(t, ir(1:length(t)));
-    hold on
-    % Plot the TOA and TOA First over the IR
-     stem(TOA_directSignal(n), abs(max(ir_w)));
-     stem(TOA_firstReflection(n), abs(max(ir_w)));
-    % Plot the windowed IR over with thicker line
     nexttile
-    plot(t, ir_w(1:length(t)));
+    hold on
+    plot(t, ir);
+    % Plot the TOA and TOA First over the IR
+    stem(TOA_directSignal(n), abs(max(ir_w)));
+    stem(TOA_firstReflection(n), abs(max(ir_w)));
+    % Plot the windowed IR over with thicker line
+    plot(t, ir_w, 'linewidth', 2);
     hold off
-    legend('windowed ir');
-
-     legend('original ir', 'direct TOA', 'First reflection TOA', 'windowed ir');
+    
+    if n == 1
+        legend('original ir', 'direct TOA', 'First reflection TOA', 'windowed ir');
+    end
+    
     xlim([0 0.05]);
     xlabel('Time (sec)');
     title(['Mic: ', num2str(n)]);
@@ -166,9 +118,9 @@ end
 
 %% Radiance estimation
 
-SIG = fft(sig, nfft);              % FFT of the windowed signal
+SIG = fft(sig, nfft);     % FFT of the windowed signal
 
-rad_patt = abs(R.*SIG);      % Compute the radiance pattern magnitude
+rad_patt = abs(R.*SIG);   % Compute the radiance pattern magnitude
 
 %% Radiance pattern plot
 
@@ -177,7 +129,9 @@ ctr_freqs = [150 250 500 750 1000 1500 2000 5000 7500 10000];
 
 % Microphone angle wrt the speaker frontal face
 angs = linspace(0, 360, nMic);
+
 % Plot the estimated radiance pattern using the provided function
 % radianceplot
+
 radianceplot(ctr_freqs, rad_patt, angs, 'noise IR: ');
 

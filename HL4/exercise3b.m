@@ -53,7 +53,7 @@ for i = 1:nMic    % For each microphone signal
 
     % Setting up time scale for computed ir
     nfft = fs;                      % Number of fft points
-    t = (0:1/fs:duration);     % Time axis
+    t = (0:1/fs:length(ir)/fs);     % Time axis
     t = t(1:end-1);
     
     % Find the first impulse of the impulse response
@@ -66,7 +66,7 @@ for i = 1:nMic    % For each microphone signal
     
     % Plot the estimated impulse response
     nexttile
-    plot(t(1:length(t)/2), ir');
+    plot(t, ir');
     xlim([0 0.05]);
     xlabel('Time (sec)');
     title(['Mic: ', num2str(i)]);

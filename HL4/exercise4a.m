@@ -64,11 +64,10 @@ for i = 1:nMic            % For each microphone signal
     fileName = strcat(dir, num2str(i), '.wav');  % i-th file name
     [y, Fs] = audioread(fileName);               % read i-th audio
     assert(Fs==fs)
-    y = y./max(y);
     t_axis = linspace(0,length(y)/Fs, length(y));
     
     % The window is applied to the signal from the 0 time instant.
-    % ------------ Check the effect of differen window sizes. -------------
+    % ------------ Check the effect of different window sizes. -------------
     y_w = y(1:length(t));
     y_w = y_w.*w;
     
@@ -76,12 +75,10 @@ for i = 1:nMic            % For each microphone signal
     Y = fft(y_w, nfft);
     [x, Fs_noise] = audioread('./input signals/noise.wav');
     assert(Fs_noise==fs)
-    X = fft(x, nfft);
-    H = Y./X;
-    h = real(ifft(H, length(x)));
-    t_h = linspace(0, length(h)/Fs_noise, length(h));
+    [ir] = extractirnoise(x, y_w, nfft);
+    t_ir = linspace(0, length(ir)/fs, length(ir));
     nexttile
-    plot(t_h, h)
+    plot(t_ir, ir)
     % Plot the mic signal
     hold on
     plot(t_axis, y)
@@ -110,9 +107,9 @@ end
 
 %% Radiance estimation
 
-SIG = fft(sig, nfft);              % FFT of the windowed signal
+SIG = fft(sig, nfft);   % FFT of the windowed signal
 
-rad_patt = abs(R.*(SIG./X));       % Compute the radiance pattern magnitude
+rad_patt = abs(R.*(SIG./fft(x, nfft))); % Compute the radiance pattern magnitude
 
 %% Radiance pattern plot
 
