@@ -18,8 +18,6 @@ clc
 % Collecting autocorrelations and plotting them in order to analyze
 % reflections. Try different takes and input signals
 
-addpath('Functions');
-
 nMic = 24;                                 % Number of microphone signals
 typeOfSignal = 'sweep/';                   % Noise or sweep
 dir = ['./recordings/' typeOfSignal];      % Recordings directory
@@ -30,6 +28,7 @@ speed_of_sound = 343.8;                    % [m]/[s]
 
 autocorrelations = cell(1, nMic);
 time_axis = cell(1,nMic);
+envHigh = cell(1,nMic);
 
 figure(1)
 tiledlayout('flow', 'padding', 'tight');
@@ -46,33 +45,35 @@ for i = 1:nMic
     xc = xcorr(x, 'normalized');
     xc = xc(round((length(xc)/2)):end);
     autocorrelations{1, i} = xc;
+    [envHigh{1,i}, envLow] = envelope(xc, 10, 'peak');
     % Plot the autocorrelation
     nexttile
+    hold on
     plot(t, xc);
+    plot(t, envHigh{1,i});
+    hold off
     title(['Mic: ', num2str(i)]);
     axis([0 0.02 -1 1]);    % Limit the axis
     xlabel('Time (sec)');
+    if i == 1
+        legend('autocorrelation', 'envelope')
+    end
 end
 
 
 %% MIC TO REFLECTORS DISTANCE COMPUTATION
 % Put here the difference between first reflection 
-% values taken from inspection of autocorrelation diagrams
-delay_noise = [0.00316668, 0.00316668, 0.00314585, 0.00314585, 0.00314585, ...
-    0.00306252, 0.00304168, 0.00304168, 0.00302085, 0.00306252, 0.00302085, ...
-    0.00306252, 0.00300002, 0.00304168, 0.00306252, 0.00302085, 0.00302085, ...
-    0.00308335, 0.00310418, 0.00312502, 0.00312502, 0.00314585, 0.00314585, ...
-    0.00314585];    %[s]
-delay_sweep = [0.00658335, 0.00668751, 0.00662501, 0.00679168, 0.00679168, ...
-    0.00695835, 0.00656251, 0.00650001, 0.00641668, 0.00652085, 0.00645835, ...
-    0.00664585, 0.00672918, 0.00664585, 0.00683335, 0.00691668, 0.00641668, ...
-    0.00639584, 0.00664585, 0.00683335, 0.00687501, 0.00677084, 0.00662501, ...
-    0.00662501];    %[s]
 
-distance_noise = delay_noise * speed_of_sound;      %[m]
-distance_sweep = delay_sweep * speed_of_sound;      %[m]
+delays = zeros(1,nMic);
 
-fprintf(sprintf('Average distance between mic and first reflection (noise) %f m\n',...
-    mean(distance_noise)));
-fprintf(sprintf('Average distance between mic and first reflection (sweep) %f m\n',...
-    mean(distance_sweep)));
+for i = 1:nMic
+    xc_env = envHigh{1,i};
+    t = time_axis{1,i};
+    [peaks,locs] = findpeaks(xc_env);
+    delays(i) = t(locs(1));
+end
+
+distance = delays * speed_of_sound;
+
+fprintf(sprintf('Average distance between mic and first reflection %f m\n',...
+    mean(distance)));

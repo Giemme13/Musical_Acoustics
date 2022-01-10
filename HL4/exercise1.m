@@ -13,8 +13,6 @@ close all
 clc 
 
 %% Setup
-addpath('Functions');
-
 typeOfSignal = 'sweep/';        % Noise or sweep
 
 dir = ['./recordings/' typeOfSignal];  % Recordings directory
@@ -47,15 +45,16 @@ deg = [deg, 360];
 
 %% Plot the results
 
-figure(1)
-plot(deg, signalEnergy, 'linewidth', 2)
-xlabel('Degrees [°]', 'fontsize', 20)
-title('Energy of the signal', 'fontsize', 20)
-xticks([0,45,90,135,180,225,270,315,360])
-xlim([0,360])
-
 theta = deg;
 phi = linspace(0,0,25);
-figure(2)
+
+figure(1)
+subplot(1,2,1)
+plot(deg, signalEnergy, 'linewidth', 2)
+xlabel('Degrees [°]', 'fontsize', 20)
+xticks([0,45,90,135,180,225,270,315,360])
+xlim([0,360])
+subplot(1,2,2)
 patternCustom(signalEnergy, theta, phi,'CoordinateSystem','polar',...
     'Slice','phi','SliceValue',0);
+sgtitle('Energy of the signal', 'fontsize', 20)

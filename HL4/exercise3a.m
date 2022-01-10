@@ -38,6 +38,7 @@ t = t(1:end-1);
 
 directPathTimeOfArrival = zeros(1, nMic);
 directPathLength = zeros(1, nMic);
+envHigh = cell(1,nMic);
 
 figure(1);
 tiledlayout('flow', 'padding', 'tight');
@@ -52,9 +53,9 @@ for i = 1:nMic            % For each microphone signal
     
     % Compute the impulse response using the function extractirnoise
     [ir] = extractirnoise(x, y, nfft);
+    [envHigh{1,i}, envLow] = envelope(ir, 30, 'peak');
     
     % Find the first (and highest) impulse of the impulse response
-    ir = abs(ir);
     [peak,loc] = max(ir);
     
     % Double check if we are finding back the correct direct path length
@@ -63,32 +64,40 @@ for i = 1:nMic            % For each microphone signal
     
     %Plot the estimate impulse response
     nexttile
+    hold on
     plot(t, ir);
+    plot(t, envHigh{1,i})
+    hold off
     grid on
     xlim([0 0.05]);
     xlabel('Time (sec)');
     title(['Mic: ',num2str(i)]);
-    
+    if i == 1
+        legend('impulse response', 'envelope')
+    end
 end
 
 %% SPEAKER TO MIC DISTANCE (DIRECT PATH LENGTH)
 % Print on screen the estimated distance from the source
 figure(2)
 plot(1:nMic, directPathLength)
-xlabel('Measurement'), ylabel('Distance highest peak')
+xlabel('Measurement', 'fontsize', 20), ylabel('Distance highest peak', 'fontsize', 20)
 
 fprintf(sprintf('Direct path length %f m\n', mean(directPathLength)));
 
 %% MIC TO REFLECTORS DISTANCE COMPUTATION
 % Put here the difference between first reflection and direct sound time of
 % arrivals (TOA)
-firstReflTimeOfArrival = [0.011875, 0.0111875, 0.0112083, 0.0112083, 0.0114167, 0.0114167, ...
-    0.0114583, 0.0115417, 0.0115833, 0.0116458, 0.0117708, 0.0118125, ...
-    0.0117917, 0.0118125, 0.0118333, 0.0116458, 0.0113958, 0.0113542, ...
-    0.0113125, 0.0112708, 0.0111667, 0.0112083, 0.0111875, 0.0111875];
+
+firstReflTimeOfArrival = zeros(1, nMic);
+for i = 1:nMic
+    env_ir = envHigh{1,i};
+    [peaks,locs] = findpeaks(env_ir(1:length(env_ir)/2));
+    [reflValue, reflIndex] = maxk(peaks, 2);
+    firstReflTimeOfArrival(i) = t(locs(reflIndex(2)));
+end
+
 delays = firstReflTimeOfArrival - directPathTimeOfArrival;
-TOA_direct = mean(directPathTimeOfArrival);
-TOA_reflex = mean(firstReflTimeOfArrival);
 
 % Inspecting the impulse responses determine the delay of the first
 % reflection

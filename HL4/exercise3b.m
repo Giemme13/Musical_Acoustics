@@ -24,7 +24,7 @@ typeOfSignal = '/sweep/';          % Sweep
 dir = ['./recordings', typeOfSignal]; % File directory
 
 fs = 48000;                        % Sampling frequency
-speed_of_sound = 343.8;            %[m]/[s]            
+speed_of_sound = 343.8;            %[m]/[s]
 duration = 10;                     %[s] duration of sweep signal
 f1 = 50;
 f2 = 22000;
@@ -39,9 +39,10 @@ f2 = 22000;
 
 directPathTimeOfArrival = zeros(1, nMic);
 directPathLength = zeros(1, nMic);
+envHigh = cell(1,nMic);
 
 figure(1);
-t = tiledlayout('flow', 'padding', 'tight');
+tiledlayout('flow', 'padding', 'tight');
 
 for i = 1:nMic    % For each microphone signal
     % Load the signal
@@ -50,6 +51,7 @@ for i = 1:nMic    % For each microphone signal
     
     % Comput the impulse response using the function extractirsweep
     [ir] = extractirsweep(y, invsweepfft);
+    [envHigh{1,i}, envLow] = envelope(ir, 30, 'peak');
 
     % Setting up time scale for computed ir
     nfft = fs;                      % Number of fft points
@@ -57,20 +59,25 @@ for i = 1:nMic    % For each microphone signal
     t = t(1:end-1);
     
     % Find the first impulse of the impulse response
-    ir = abs(ir);
     [peak,loc] = max(ir);
-
+    
     % Double check if we are finding back the correct direct path length
     directPathTimeOfArrival(i) = t(loc);
     directPathLength(i) = directPathTimeOfArrival(i)*speed_of_sound;
     
     % Plot the estimated impulse response
     nexttile
-    plot(t, ir');
+    hold on
+    plot(t, ir);
+    plot(t, envHigh{1,i})
+    hold off
+    grid on
     xlim([0 0.05]);
     xlabel('Time (sec)');
     title(['Mic: ', num2str(i)]);
-    
+    if i == 1
+        legend('impulse response', 'envelope')
+    end
 end
 
 %% SPEAKER TO MIC DISTANCE (DIRECT PATH LENGTH)
@@ -84,13 +91,16 @@ fprintf(sprintf('Direct path length %f m\n', mean(directPathLength)));
 %% MIC TO REFLECTOR DISTANCE COMPUTATION
 % Put here the difference between first reflection and direct sound time of
 % arrivals (TOA)
-firstReflTimeOfArrival = [0.011125, 0.0111875, 0.0111875, 0.0112083, 0.0111875 ...
-    0.0112708, 0.0113125, 0.0113542, 0.0115833, 0.011625, 0.0117292, ...
-    0.0117708, 0.0117917, 0.0117708, 0.0116875, 0.0116458, 0.011375, ...
-    0.0113333, 0.0112917, 0.01125, 0.0112292, 0.0112083, 0.0111875, 0.011125];
+
+firstReflTimeOfArrival = zeros(1, nMic);
+for i = 1:nMic
+    env_ir = envHigh{1,i};
+    [peaks,locs] = findpeaks(env_ir(1:length(env_ir)/2));
+    [reflValue, reflIndex] = maxk(peaks, 2);
+    firstReflTimeOfArrival(i) = t(locs(reflIndex(2)));
+end
+
 delays = firstReflTimeOfArrival - directPathTimeOfArrival;
-TOA_direct = mean(directPathTimeOfArrival);
-TOA_reflex = mean(firstReflTimeOfArrival);
 
 % Inspecting the impulse responses determine the delay of the first
 % reflection
