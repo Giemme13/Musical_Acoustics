@@ -82,11 +82,11 @@ for i = 1:nMic            % For each microphone signal
     % Plot the windowed signal with thicker line
     plot(t, y_w./max(y), 'linewidth', 2)
     % Plot the TOA using stem (see doc stem)
-    index = find(abs(t-TOA_directSignal(i))==min(abs(t-TOA_directSignal(i))));
-    stem(t(index), y(index)./max(y), 'filled', 'linewidth', 2)
+    index = find(abs(t_y-TOA_directSignal(i))==min(abs(t_y-TOA_directSignal(i))));
+    stem(t_y(index), y(index)./max(y), 'filled', 'linewidth', 2)
     % Plot the first reflection TOA using stem (see doc stem)
-    index = find(abs(t-TOA_firstReflection(i))==min(abs(t-TOA_firstReflection(i))));
-    stem(t(index), y(index)./max(y), 'filled', 'linewidth', 2)
+    index = find(abs(t_y-TOA_firstReflection(i))==min(abs(t_y-TOA_firstReflection(i))));
+    stem(t_y(index), y(index)./max(y), 'filled', 'linewidth', 2)
     hold off
     if i == 1
         % Add a legend

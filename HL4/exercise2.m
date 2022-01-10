@@ -19,7 +19,7 @@ clc
 % reflections. Try different takes and input signals
 
 nMic = 24;                                 % Number of microphone signals
-typeOfSignal = 'sweep/';                   % Noise or sweep
+typeOfSignal = 'noise/';                   % Noise or sweep
 dir = ['./recordings/' typeOfSignal];      % Recordings directory
 
 speed_of_sound = 343.8;                    % [m]/[s]

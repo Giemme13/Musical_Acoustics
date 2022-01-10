@@ -13,7 +13,7 @@ close all
 clc 
 
 %% Setup
-typeOfSignal = 'sweep/';        % Noise or sweep
+typeOfSignal = 'noise/';        % Noise or sweep
 
 dir = ['./recordings/' typeOfSignal];  % Recordings directory
 

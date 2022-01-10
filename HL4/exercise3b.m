@@ -105,7 +105,7 @@ delays = firstReflTimeOfArrival - directPathTimeOfArrival;
 % Inspecting the impulse responses determine the delay of the first
 % reflection
 delay = mean(delays);    %[s]
-fprintf(sprintf('Average delay between direct sound and first reflection: %f m\n', ...
+fprintf(sprintf('Average delay between direct sound and first reflection: %f s\n', ...
     delay));
 
 % Compute the distance from the reflectors
