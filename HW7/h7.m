@@ -28,3 +28,7 @@ z(n) = a-2.5-a*cos(-(x(n)-8.75)*2*pi*b/5);
 end
 plot(x,z)
 axis equal
+
+%%
+a1=0.0123;
+
