@@ -1,3 +1,9 @@
+
+close all
+clear
+clc
+
+
 %% Script for generating the thickness profile of a marimba bar as a function of
 %the horizontal position
 % Fabio Antonacci, 2021 @ Musical Acoustics, A.A. 2021/2022
@@ -29,6 +35,19 @@ end
 plot(x,z)
 axis equal
 
-%%
-a1=0.0123;
+%% Inharmonicity
+a1=0.1:0.1:1.2;
+%f=[ ]  %matrix [12x5] of first 5 eigenfrequencies for each value of
+%parameter a. Copy from COMSOL results
+m=0:1:1000;
+I=0; %inharmonicity
+
+for i=1:length(a1) %loop an values of parameter a
+    for j=2:5 %loop on the 5 eigenfrequencies (from 2 to 5)
+        [min, m_n]=min(f(i,j)-m*f(i,j-1));
+        I=I+abs((f(i,j)/f(i,j-1))-m_n-1);
+    end
+end
+
+%% Plot
 
