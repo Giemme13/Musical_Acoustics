@@ -37,29 +37,42 @@ axis equal
 
 %% Inharmonicity
 
-a1 = 0.1:0.1:1.2;
+a = 0.1:0.1:1.2;
 
-%matrix [12x5] of first 5 eigenfrequencies for each value of
-%parameter a. Copy from COMSOL results
-f=[8448.14568, 8839.68910, 12557.46521, 20013.34040, 20068.92623;
-    7907.51943, 8749.23353, 12068.14288, 19633.61191, 19757.32693;
-    7283.16410, 8623.21846, 11478.21556, 19107.43680, 19347.97367;
-    6587.74544, 8459.82585, 10785.81062, 18508.85673, 18768.58148;
-    5836.37006, 8256.43438,  9991.69984, 17851.28629, 18007.22886;
-    5043.81943, 8008.06239,  9097.45666, 17053.93612, 17137.14158;
-    4225.47694, 7706.66028,  8106.90850, 15903.28736, 16356.82223;
-    3394.27400, 7020.85481,  7337.63313, 14539.14271, 15482.89802;
-    2565.63223, 5841.53745,  6877.11348, 12935.93688, 14468.12186;
-    1750.28042, 4559.18915,  6275.61646, 11010.66347, 13214.74176;
-     971.22527, 3153.43876,  5427.67839,  8569.57419, 11524.49953;
-     268.33845, 1495.38814,  3955.68088,  4842.88208,  8662.59627];  
+a_values = length(a);
+f_values = 15;  %this must correspond to the searched frequencies in COMSOL
 
-m = 0:1:5;
+% f = matrix [12x5] of first 5 eigenfrequencies for each value of a
+f = zeros(12,5);
+
+fileID = fopen('./DataFromComsol.txt');
+
+i = 1;
+while ~feof(fileID)
+    line = fgetl(fileID);
+    if (line(1)) ~= '%'
+        text_lines{i} = line;
+        i = i+1;
+    end
+end
+fclose(fileID);
+
+for i = 1:a_values
+    for j = 7:11    %taking only the searched 5 frequencies each value of a
+        for k = 51:60  %taking only the correct characters inside each line
+            freq(k) = text_lines{1,(i-1)*f_values+j}(k);
+        end
+        f(i,j-6) = str2num(freq);
+    end
+end
+
+
+m = 1:1:5;
 %matrix containing the inharmonicities of each harmonic with respect to the
 %corresponding lower eigenfrequencies, for each value of a
 I = zeros(12, 4);
 
-for i = 1:length(a1) %loop all values of parameter a
+for i = 1:length(a) %loop all values of parameter a
     for N = 2:5 %loop on harmonics
         for n = 2:N %loop on eigenfrequencies lower than N
             [value, m_n] = min(abs(f(i,n)-m*f(i,n-1)));
@@ -70,6 +83,8 @@ end
 
 %% Plot
 
+a = 0.1:0.1:1.2;
+
 line1 = I(:,1);
 line2 = I(:,2);
 line3 = I(:,3);
@@ -77,10 +92,14 @@ line4 = I(:,4);
 
 figure(1)
 hold on
-plot(a1, line1, '-o')
-plot(a1, line2, '-o')
-plot(a1, line3, '-o')
-plot(a1, line4, '-o')
+plot(a, line1, '-o')
+plot(a, line2, '-o')
+plot(a, line3, '-o')
+plot(a, line4, '-o')
 hold off
 grid on
+title('Inharmonicity')
+xlabel('a')
+ylabel('I')
+legend('1st harmonic', '2nd harmonic', '3rd harmonic', '4th harmonic')
 
