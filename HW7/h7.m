@@ -32,6 +32,7 @@ end
 for n = 7*floor(N/8)+1:N
 z(n) = a-2.5-a*cos(-(x(n)-8.75)*2*pi*b/5);
 end
+figure(1)
 plot(x,z)
 axis equal
 
@@ -90,7 +91,7 @@ line2 = I(:,2);
 line3 = I(:,3);
 line4 = I(:,4);
 
-figure(1)
+figure(2)
 hold on
 plot(a, line1, '-o')
 plot(a, line2, '-o')
@@ -98,8 +99,9 @@ plot(a, line3, '-o')
 plot(a, line4, '-o')
 hold off
 grid on
-title('Inharmonicity')
-xlabel('a')
-ylabel('I')
-legend('1st harmonic', '2nd harmonic', '3rd harmonic', '4th harmonic')
+title('Inharmonicity', 'fontsize', 20)
+xlabel('$a$', 'interpreter', 'latex', 'fontsize', 18)
+ylabel('$I$', 'interpreter', 'latex', 'fontsize', 18)
+legend('1st harmonic', '2nd harmonic', '3rd harmonic', '4th harmonic', ...
+    'fontsize', 15, 'location', 'northwest')
 
