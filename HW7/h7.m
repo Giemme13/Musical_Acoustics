@@ -92,6 +92,7 @@ line3 = I(:,3);
 line4 = I(:,4);
 
 figure(2)
+tightfig;
 hold on
 plot(a, line1, '-o')
 plot(a, line2, '-o')
